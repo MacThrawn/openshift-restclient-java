@@ -96,7 +96,7 @@ public class DeploymentConfigTest {
 	@Test
 	public void testAddContainer() {
 		//remove containers hack
-		String[] path = getPath(DeploymentConfig.DEPLOYMENTCONFIG_CONTAINERS);
+		String[] path = getPath(DeploymentConfig.POD_TEMPLATE_CONTAINERS);
 		node.get(path).clear();
 		
 		//setup
