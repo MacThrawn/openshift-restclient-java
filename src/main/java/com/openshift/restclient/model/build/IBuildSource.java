@@ -3,7 +3,7 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.restclient.model.build;
@@ -12,24 +12,33 @@ package com.openshift.restclient.model.build;
  * @author Jeff Cantrill
  */
 public interface IBuildSource {
-	
-	/**
-	 * The BuildSourceType
-	 * @return {@link BuildSourceType}
-	 */
-	String getType();
-	
-	/**
-	 * The URI to the source repo
-	 * @return
-	 */
-	String getURI();
 
-	/**
-	 * The sub-directory relative to the repo root where the source code for the application exists. 
-	 * This allows to have buildable sources in directory other than root of repository.  
-	 * 
-	 * @return
-	 */
-	String getContextDir();
+    /**
+     * The BuildSourceType
+     *
+     * @return {@link BuildSourceType}
+     */
+    String getType();
+
+    /**
+     * The URI to the source repo
+     *
+     * @return
+     */
+    String getURI();
+
+    /**
+     * The sub-directory relative to the repo root where the source code for the application exists.
+     * This allows to have buildable sources in directory other than root of repository.
+     *
+     * @return
+     */
+    String getContextDir();
+
+    /**
+     * The source secret name
+     *
+     * @return
+     */
+    String getSourceSecret();
 }
