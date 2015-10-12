@@ -20,11 +20,14 @@ import com.openshift.internal.restclient.model.build.CustomBuildStrategy;
 import com.openshift.internal.restclient.model.build.DockerBuildStrategy;
 import com.openshift.internal.restclient.model.build.GitBuildSource;
 import com.openshift.internal.restclient.model.build.ImageChangeTrigger;
+import com.openshift.internal.restclient.model.build.ImageStreamReference;
 import com.openshift.internal.restclient.model.build.SourceBuildStrategy;
 import com.openshift.internal.restclient.model.build.WebhookTrigger;
 import com.openshift.restclient.IClient;
+import com.openshift.restclient.ResourceKind;
 import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.IBuildConfig;
+import com.openshift.restclient.model.IObjectReference;
 import com.openshift.restclient.model.build.BuildSourceType;
 import com.openshift.restclient.model.build.BuildStrategyType;
 import com.openshift.restclient.model.build.BuildTriggerType;
@@ -66,6 +69,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	private static final String BUILD_CONFIG_IMAGECHANGE_IMAGE = "imageChange.image";
 	private static final String BUILD_CONFIG_IMAGECHANGE_NAME = "imageChange.from.name";
 	private static final String BUILD_CONFIG_IMAGECHANGE_TAG = "imageChange.tag";
+	public static final String BUILDCONFIG_OUTPUT_TO = "spec.output.to";
 
 	public BuildConfig(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
 		super(node, client, null);
@@ -234,15 +238,29 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 		set(BUILDCONFIG_TYPE, strategy.getType());
 	}
 
-	public void setOutput(DockerImageURI imageUri) {
-		ModelNode output = getNode().get(new String[] { "spec", "output", "to" });
-		output.get("kind").set("ImageStream");
-		output.get("name").set(imageUri.getNameAndTag());
+	public void setOutput(IObjectReference objectReference) {
 
-		//FIXME
-		//		ModelNode output = getNode().get(new String []{"parameters","output"});
-		//		output.get("imageTag").set(imageUri.getUriWithoutHost());
-		//		output.get("registry").set(imageUri.getRepositoryHost());
+		ModelNode output = get(BUILDCONFIG_OUTPUT_TO);
+		output.get("kind").set(objectReference.getKind());
+		output.get("name").set(objectReference.getName());
+		if (objectReference.getNamespace() != null) {
+			output.get("namespace").set(objectReference.getNamespace());
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends IObjectReference> T getOutput() {
+		ModelNode output = get(BUILDCONFIG_OUTPUT_TO);
+		switch (output.get("kind").asString()) {
+			case ResourceKind.IMAGE_STREAM:
+				DockerImageURI uri = new DockerImageURI(output.get("name").asString());
+				return (T) new ImageStreamReference(uri.getName(), output.get("namespace").asString(), uri.getTag());
+			case "undefined":
+				return null;
+			default:
+				return (T) new ObjectReference(output.get("kind").asString(), output.get("name").asString());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
