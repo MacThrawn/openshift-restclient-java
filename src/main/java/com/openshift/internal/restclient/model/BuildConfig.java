@@ -50,6 +50,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	private static final String BUILDCONFIG_SOURCE_TYPE = "spec.source.type";
 	private static final String BUILDCONFIG_SOURCE_URI = "spec.source.git.uri";
 	private static final String BUILDCONFIG_SOURCE_REF = "spec.source.git.ref";
+	private static final String BUILD_CONFIG_SOURCE_SECRET_NAME = "spec.source.sourceSecret.name";
 	public static final String BUILDCONFIG_TYPE = "spec.strategy.type";
 	private static final String BUILDCONFIG_CUSTOM_IMAGE = "spec.strategy.customStrategy.image";
 	private static final String BUILDCONFIG_CUSTOM_EXPOSEDOCKERSOCKET = "spec.strategy.customStrategy.exposeDockerSocket";
@@ -184,6 +185,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 		set(BUILDCONFIG_SOURCE_URI, source.getURI());
 		set(BUILDCONFIG_SOURCE_TYPE, source.getType().toString());
 		set(BUILDCONFIG_SOURCE_CONTEXTDIR, source.getContextDir());
+		set(BUILD_CONFIG_SOURCE_SECRET_NAME, source.getSourceSecret());
 	}
 
 	@Override
