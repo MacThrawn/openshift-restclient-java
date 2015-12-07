@@ -52,14 +52,16 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	private static final String BUILDCONFIG_SOURCE_REF = "spec.source.git.ref";
 	private static final String BUILD_CONFIG_SOURCE_SECRET_NAME = "spec.source.sourceSecret.name";
 	public static final String BUILDCONFIG_TYPE = "spec.strategy.type";
+	private static final String BUILDCONFIG_CUSTOM = "spec.strategy.customStrategy";
 	private static final String BUILDCONFIG_CUSTOM_IMAGE = "spec.strategy.customStrategy.image";
 	private static final String BUILDCONFIG_CUSTOM_EXPOSEDOCKERSOCKET = "spec.strategy.customStrategy.exposeDockerSocket";
 	private static final String BUILDCONFIG_CUSTOM_ENV = "spec.strategy.customStrategy.env";
+	private static final String BUILDCONFIG_DOCKER = "spec.strategy.dockerStrategy";
 	public static final String BUILDCONFIG_DOCKER_CONTEXTDIR = "spec.strategy.dockerStrategy.contextDir";
 	public static final String BUILDCONFIG_DOCKER_NOCACHE = "spec.strategy.dockerStrategy.noCache";
-	public static final String BUILDCONFIG_DOCKER_BASEIMAGE = "spec.strategy.dockerStrategy.baseImage";
 	private static final String BUILDCONFIG_DOCKER_ENV = "spec.strategy.dockerStrategy.env";
 	private static final String BUILDCONFIG_OUTPUT_REPO = "spec.output.to.name";
+	private static final String BUILDCONFIG_STI = "spec.strategy.sourceStrategy";
 	private static final String BUILDCONFIG_STI_IMAGE = "spec.strategy.sourceStrategy.from.name";
 	private static final String BUILDCONFIG_STI_SCRIPTS = "spec.strategy.sourceStrategy.scripts";
 	private static final String BUILDCONFIG_STI_INCREMENTAL = "spec.strategy.sourceStrategy.incremental";
@@ -70,7 +72,8 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	private static final String BUILD_CONFIG_IMAGECHANGE_IMAGE = "imageChange.image";
 	private static final String BUILD_CONFIG_IMAGECHANGE_NAME = "imageChange.from.name";
 	private static final String BUILD_CONFIG_IMAGECHANGE_TAG = "imageChange.tag";
-	public static final String BUILDCONFIG_OUTPUT_TO = "spec.output.to";
+	private static final String BUILDCONFIG_OUTPUT_TO = "spec.output.to";
+	private static final String BUILDCONFIG_STATUS_LASTVERSION = "status.lastVersion";
 
 	public BuildConfig(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
 		super(node, client, null);
@@ -160,6 +163,11 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 		return asString(BUILDCONFIG_SOURCE_URI);
 	}
 
+	@Override
+	public String getLastVersion() {
+		return asString(BUILDCONFIG_STATUS_LASTVERSION);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends IBuildSource> T getBuildSource() {
@@ -191,8 +199,10 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	@Override
 	public void setBuildStrategy(IBuildStrategy strategy) {
 		// Remove other strategies if already set?
+		String from = ".from";
 		switch (strategy.getType()) {
 			case BuildStrategyType.CUSTOM:
+				from = BUILDCONFIG_CUSTOM + from;
 				if (!(strategy instanceof ICustomBuildStrategy)) {
 					throw new IllegalArgumentException("IBuildStrategy of type Custom does not implement ICustomBuildStrategy");
 				}
@@ -207,13 +217,11 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				break;
 			case BuildStrategyType.STI:
 			case BuildStrategyType.SOURCE:
+				from = BUILDCONFIG_STI + from;
 				if (!(strategy instanceof ISTIBuildStrategy)) {
 					throw new IllegalArgumentException("IBuildStrategy of type Custom does not implement ISTIBuildStrategy");
 				}
 				ISTIBuildStrategy sti = (ISTIBuildStrategy) strategy;
-				if (sti.getImage() != null) {
-					set(BUILDCONFIG_STI_IMAGE, sti.getImage().toString());
-				}
 				if (sti.getScriptsLocation() != null) {
 					set(BUILDCONFIG_STI_SCRIPTS, sti.getScriptsLocation());
 				}
@@ -223,13 +231,11 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				}
 				break;
 			case BuildStrategyType.DOCKER:
+				from = BUILDCONFIG_DOCKER + from;
 				if (!(strategy instanceof IDockerBuildStrategy)) {
 					throw new IllegalArgumentException("IBuildStrategy of type Custom does not implement IDockerBuildStrategy");
 				}
 				IDockerBuildStrategy docker = (IDockerBuildStrategy) strategy;
-				if (docker.getBaseImage() != null) {
-					set(BUILDCONFIG_DOCKER_BASEIMAGE, docker.getBaseImage().toString());
-				}
 				if (docker.getContextDir() != null) {
 					set(BUILDCONFIG_DOCKER_CONTEXTDIR, docker.getContextDir());
 				}
@@ -237,6 +243,12 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				break;
 		}
 
+		ImageStreamReference isr = strategy.getFrom();
+		if (isr != null) {
+			set(from + ".kind", isr.getKind());
+			set(from + ".namespace", isr.getNamespace());
+			set(from + ".name", isr.getName());
+		}
 		set(BUILDCONFIG_TYPE, strategy.getType());
 	}
 
@@ -276,7 +288,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 					getEnvMap(BUILDCONFIG_CUSTOM_ENV));
 			case BuildStrategyType.STI:
 			case BuildStrategyType.SOURCE:
-				return (T) new SourceBuildStrategy(asString(BUILDCONFIG_STI_IMAGE),
+				return (T) new SourceBuildStrategy(
 					asString(BUILDCONFIG_STI_SCRIPTS),
 					asBoolean(BUILDCONFIG_STI_INCREMENTAL),
 					getEnvMap(BUILDCONFIG_STI_ENV));
@@ -285,10 +297,10 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				return (T) new DockerBuildStrategy(
 					asString(BUILDCONFIG_DOCKER_CONTEXTDIR),
 					asBoolean(BUILDCONFIG_DOCKER_NOCACHE),
-					asString(BUILDCONFIG_DOCKER_BASEIMAGE),
 					getEnvMap(BUILDCONFIG_DOCKER_ENV));
 			default:
 		}
 		return null;
 	}
+
 }

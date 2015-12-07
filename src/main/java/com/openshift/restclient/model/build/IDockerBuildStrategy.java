@@ -8,20 +8,14 @@
  ******************************************************************************/
 package com.openshift.restclient.model.build;
 
-import java.util.Map;
-
-import com.openshift.restclient.images.DockerImageURI;
 
 /**
  * @author Jeff Cantrill
  */
 public interface IDockerBuildStrategy extends IBuildStrategy {
 
-    String getContextDir();
+	String getContextDir();
 
-    boolean isNoCache();
+	boolean isNoCache();
 
-    DockerImageURI getBaseImage();
-
-    Map<String, String> getEnv();
 }

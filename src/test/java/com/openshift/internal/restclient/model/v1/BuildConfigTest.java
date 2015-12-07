@@ -25,7 +25,6 @@ import com.openshift.internal.restclient.model.build.SourceBuildStrategy;
 import com.openshift.internal.restclient.model.build.WebhookTrigger;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.ResourceKind;
-import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.IBuildConfig;
 import com.openshift.restclient.model.IObjectReference;
 import com.openshift.restclient.model.build.BuildSourceType;
@@ -120,7 +119,7 @@ public class BuildConfigTest {
 
 		Map<String, String> env = new HashMap<String, String>();
 		env.put("foo", "bar");
-		writeConfig.setBuildStrategy(new SourceBuildStrategy("ruby-20-centos7:latest", "alocation", true, env));
+		writeConfig.setBuildStrategy(new SourceBuildStrategy("alocation", true, env));
 
 		assertSourceBuildStrategy(reCreateBuildConfig(writeConfig).getBuildStrategy());
 	}
@@ -168,7 +167,7 @@ public class BuildConfigTest {
 		assertTrue(strategy instanceof ISourceBuildStrategy);
 
 		ISourceBuildStrategy source = (ISourceBuildStrategy) strategy;
-		assertEquals(new DockerImageURI("ruby-20-centos7:latest"), source.getImage());
+		//assertEquals(new DockerImageURI("ruby-20-centos7:latest"), source.getImage());
 		assertEquals("alocation", source.getScriptsLocation());
 		assertEquals(true, source.incremental());
 		assertEquals(1, source.getEnvironmentVariables().size());

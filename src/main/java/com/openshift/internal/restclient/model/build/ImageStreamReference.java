@@ -8,7 +8,7 @@ public class ImageStreamReference extends ObjectReference {
 	private final String tag;
 
 	public ImageStreamReference(String name, String namespace, String tag) {
-		super(ResourceKind.IMAGE_STREAM, name, namespace);
+		super(ResourceKind.IMAGE_STREAM_TAG, name, namespace);
 		this.tag = tag;
 	}
 

@@ -3,7 +3,7 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.restclient;
@@ -19,12 +19,13 @@ import java.util.Set;
  *
  */
 public final class ResourceKind {
-	
+
 	//OpenShift Kinds
 	public static final String BUILD = "Build";
 	public static final String BUILD_CONFIG = "BuildConfig";
 	public static final String DEPLOYMENT_CONFIG = "DeploymentConfig";
 	public static final String IMAGE_STREAM = "ImageStream";
+	public static final String IMAGE_STREAM_TAG = "ImageStreamTag";
 	public static final String OAUTH_ACCESS_TOKEN = "OAuthAccessToken";
 	public static final String OAUTH_AUTHORIZE_TOKEN = "OAuthAuthorizeToken";
 	public static final String OAUTH_CLIENT = "OAuthClient";
@@ -38,7 +39,7 @@ public final class ResourceKind {
 	public static final String ROUTE = "Route";
 	public static final String TEMPLATE = "Template";
 	public static final String USER = "User";
-	
+
 	//Kubernetes Kinds
 	public static final String EVENT = "Event";
 	public static final String LIMIT_RANGE = "LimitRange";
@@ -66,34 +67,34 @@ public final class ResourceKind {
 	 * The default if we haven't implemented the kind yet
 	 */
 	public static final String UNRECOGNIZED = "Unrecognized";
-	
-	private static final Collection<String> values; 
-	
+
+	private static final Collection<String> values;
+
 	public static Collection<String> values() {
 		return values;
 	}
-	
+
 	static {
 		Set<String> set = new HashSet<String>();
 		//OpenShift Kinds
 		set.add(BUILD);
 		set.add(BUILD_CONFIG);
 		set.add(DEPLOYMENT_CONFIG);
-		set.add(IMAGE_STREAM );
+		set.add(IMAGE_STREAM);
 		set.add(OAUTH_ACCESS_TOKEN);
 		set.add(OAUTH_AUTHORIZE_TOKEN);
 		set.add(OAUTH_CLIENT);
 		set.add(OAUTH_CLIENT_AUTHORIZATION);
 		set.add(POLICY);
 		set.add(POLICY_BINDING);
-		set.add(PROJECT );
+		set.add(PROJECT);
 		set.add(PROJECT_REQUEST);
 		set.add(ROLE);
 		set.add(ROLE_BINDING);
 		set.add(ROUTE);
 		set.add(TEMPLATE);
 		set.add(USER);
-		
+
 		//Kubernetes Kinds
 		set.add(EVENT);
 		set.add(LIMIT_RANGE);
@@ -112,11 +113,11 @@ public final class ResourceKind {
 		set.add(CONFIG);
 		set.add(LIST);
 		set.add(STATUS);
-		set.add(TEMPLATE_CONFIG );
+		set.add(TEMPLATE_CONFIG);
 		set.add("ProcessedTemplates");
 		values = Collections.unmodifiableCollection(set);
 	}
-	
+
 	private ResourceKind() {
 	}
 }

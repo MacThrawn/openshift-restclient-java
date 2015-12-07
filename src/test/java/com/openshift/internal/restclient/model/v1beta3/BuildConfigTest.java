@@ -3,16 +3,10 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient.model.v1beta3;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -32,7 +26,6 @@ import com.openshift.internal.restclient.model.build.WebhookTrigger;
 import com.openshift.internal.restclient.model.properties.ResourcePropertiesRegistry;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.ResourceKind;
-import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.IBuildConfig;
 import com.openshift.restclient.model.build.BuildSourceType;
 import com.openshift.restclient.model.build.BuildStrategyType;
@@ -44,16 +37,22 @@ import com.openshift.restclient.model.build.IGitBuildSource;
 import com.openshift.restclient.model.build.ISTIBuildStrategy;
 import com.openshift.restclient.utils.Samples;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Jeff Cantrill
  */
 public class BuildConfigTest {
-	
+
 	private static IBuildConfig config;
 	private static IClient client;
-	
+
 	@BeforeClass
-	public static void setup() throws Exception{
+	public static void setup() throws Exception {
 		client = mock(IClient.class);
 		when(client.getBaseURL()).thenReturn(new URL("https://localhost:8443"));
 		when(client.getOpenShiftAPIVersion()).thenReturn("v1beta3");
@@ -64,42 +63,44 @@ public class BuildConfigTest {
 	private static Map<String, String[]> getPropertyKeys() {
 		return ResourcePropertiesRegistry.getInstance().get("v1beta3", ResourceKind.BUILD_CONFIG);
 	}
-	
+
 	@Test
-	public void getBuildTriggers(){
-		assertBuildTriggers(config.getBuildTriggers().toArray(new IBuildTrigger[]{}));
+	public void getBuildTriggers() {
+		assertBuildTriggers(config.getBuildTriggers().toArray(new IBuildTrigger[] {}));
 	}
 
 	@Test
 	public void addBuildTriggers() {
-		BuildConfig writeConfig = new ResourceFactory(client){}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
+		BuildConfig writeConfig = new ResourceFactory(client) {
+		}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
 
 		writeConfig.addBuildTrigger(new WebhookTrigger(BuildTriggerType.GITHUB, "secret101", null));
 		writeConfig.addBuildTrigger(new WebhookTrigger(BuildTriggerType.GENERIC, "secret101", null));
 		writeConfig.addBuildTrigger(new ImageChangeTrigger("", "", ""));
 
-		assertBuildTriggers(reCreateBuildConfig(writeConfig).getBuildTriggers().toArray(new IBuildTrigger[]{}));
+		assertBuildTriggers(reCreateBuildConfig(writeConfig).getBuildTriggers().toArray(new IBuildTrigger[] {}));
 	}
 
 	@Test
-	public void getOutputRespositoryName(){
+	public void getOutputRespositoryName() {
 		assertEquals("origin-ruby-sample:latest", config.getOutputRepositoryName());
 	}
-	
+
 	@Test
-	public void getSourceURI(){
+	public void getSourceURI() {
 		assertEquals("git://github.com/openshift/ruby-hello-world.git", config.getSourceURI());
 	}
-	
+
 	@Test
-	public void getGitBuildSource(){
+	public void getGitBuildSource() {
 		IBuildSource source = config.getBuildSource();
 		assertGitBuildSource(source);
 	}
 
 	@Test
 	public void setGitBuildSource() {
-		BuildConfig writeConfig = new ResourceFactory(client){}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
+		BuildConfig writeConfig = new ResourceFactory(client) {
+		}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
 
 		Map<String, String> env = new HashMap<String, String>();
 		env.put("foo", "bar");
@@ -116,20 +117,21 @@ public class BuildConfigTest {
 
 	@Test
 	public void setSTIBuildStrategy() {
-		BuildConfig writeConfig = new ResourceFactory(client){}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
+		BuildConfig writeConfig = new ResourceFactory(client) {
+		}.create(OpenShiftAPIVersion.v1beta3.name(), ResourceKind.BUILD_CONFIG);
 
 		Map<String, String> env = new HashMap<String, String>();
 		env.put("foo", "bar");
-		writeConfig.setBuildStrategy(new STIBuildStrategy("ruby-20-centos7:latest", "alocation", true, env));
+		writeConfig.setBuildStrategy(new STIBuildStrategy("alocation", true, env));
 
 		assertSourceBuildStrategy(reCreateBuildConfig(writeConfig).getBuildStrategy());
 	}
 
 	private void assertBuildTriggers(IBuildTrigger[] triggers) {
-		IBuildTrigger [] exp = new IBuildTrigger[]{
-				new WebhookTrigger(BuildTriggerType.GITHUB, "secret101","https://localhost:8443"),
-				new WebhookTrigger(BuildTriggerType.GENERIC, "secret101","https://localhost:8443"),
-				new ImageChangeTrigger("", "", "")
+		IBuildTrigger[] exp = new IBuildTrigger[] {
+			new WebhookTrigger(BuildTriggerType.GITHUB, "secret101", "https://localhost:8443"),
+			new WebhookTrigger(BuildTriggerType.GENERIC, "secret101", "https://localhost:8443"),
+			new ImageChangeTrigger("", "", "")
 		};
 		assertArrayEquals(exp, triggers);
 	}
@@ -140,21 +142,21 @@ public class BuildConfigTest {
 		assertEquals("foobar", source.getContextDir());
 		assertTrue(source instanceof IGitBuildSource);
 
-		IGitBuildSource git = (IGitBuildSource)source;
-		assertEquals("Exp. to get the source ref","", git.getRef());
+		IGitBuildSource git = (IGitBuildSource) source;
+		assertEquals("Exp. to get the source ref", "", git.getRef());
 	}
 
 	private void assertSourceBuildStrategy(IBuildStrategy strategy) {
 		assertEquals(BuildStrategyType.SOURCE, strategy.getType());
 		assertTrue(strategy instanceof ISTIBuildStrategy);
 
-		ISTIBuildStrategy sti = (ISTIBuildStrategy)strategy;
-		assertEquals(new DockerImageURI("ruby-20-centos7:latest"), sti.getImage());
+		ISTIBuildStrategy sti = (ISTIBuildStrategy) strategy;
+		//assertEquals(new DockerImageURI("ruby-20-centos7:latest"), sti.getImage());
 		assertEquals("alocation", sti.getScriptsLocation());
 		assertEquals(true, sti.incremental());
 		assertEquals(1, sti.getEnvironmentVariables().size());
-		assertTrue("Exp. to find the environment variable",sti.getEnvironmentVariables().containsKey("foo"));
-		assertEquals("bar",sti.getEnvironmentVariables().get("foo"));
+		assertTrue("Exp. to find the environment variable", sti.getEnvironmentVariables().containsKey("foo"));
+		assertEquals("bar", sti.getEnvironmentVariables().get("foo"));
 	}
 
 	private BuildConfig reCreateBuildConfig(BuildConfig config) {

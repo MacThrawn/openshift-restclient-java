@@ -1,16 +1,17 @@
-/******************************************************************************* 
- * Copyright (c) 2013-2014 Red Hat, Inc. 
- * Distributed under license by Red Hat, Inc. All rights reserved. 
- * This program is made available under the terms of the 
- * Eclipse Public License v1.0 which accompanies this distribution, 
- * and is available at http://www.eclipse.org/legal/epl-v10.html 
- * 
- * Contributors: 
- * Red Hat, Inc. - initial API and implementation 
+/*******************************************************************************
+ * Copyright (c) 2013-2014 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
 package com.openshift.internal.restclient.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -65,15 +66,15 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	protected String acceptedVersion;
 	protected ISSLCertificateCallback sslAuthorizationCallback;
 	protected Integer configTimeout;
-	private String excludedSSLCipherRegex;
+	private final String excludedSSLCipherRegex;
 	private IAuthorizationStrategy authStrategy;
 
-	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType, String version){
+	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType, String version) {
 		this(userAgent, acceptedMediaType, version, null, null, null);
 	}
 
 	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType,
-			String version, ISSLCertificateCallback callback, Integer configTimeout, String excludedSSLCipherRegex) {
+		String version, ISSLCertificateCallback callback, Integer configTimeout, String excludedSSLCipherRegex) {
 		this.userAgent = userAgent;
 		this.acceptedMediaType = acceptedMediaType;
 		this.acceptedVersion = version;
@@ -81,7 +82,7 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		this.configTimeout = configTimeout;
 		this.excludedSSLCipherRegex = excludedSSLCipherRegex;
 	}
-	
+
 	@Override
 	public void setAuthorizationStrategy(IAuthorizationStrategy strategy) {
 		this.authStrategy = strategy;
@@ -98,45 +99,45 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	public String put(URL url, IMediaType mediaType, int timeout, Parameter... parameters)
-			throws HttpClientException, SocketTimeoutException, EncodingException {
+		throws HttpClientException, SocketTimeoutException, EncodingException {
 		return request(HttpMethod.PUT, url, mediaType, timeout, parameters);
 	}
 
 	@Override
 	public String put(URL url, int timeout, IResource resource)
-			throws HttpClientException, SocketTimeoutException, EncodingException {
+		throws HttpClientException, SocketTimeoutException, EncodingException {
 		return request(HttpMethod.PUT, url, timeout, resource);
 	}
-	
+
 	@Override
 	public String post(URL url, int timeout, IResource resource) throws HttpClientException, SocketTimeoutException, EncodingException {
 		return request(HttpMethod.POST, url, timeout, resource);
 	}
 
 	public String delete(URL url, IMediaType mediaType, int timeout, Parameter... parameters)
-			throws HttpClientException, SocketTimeoutException, EncodingException {
+		throws HttpClientException, SocketTimeoutException, EncodingException {
 		return request(HttpMethod.DELETE, url, mediaType, timeout, parameters);
 	}
-	
+
 	@Override
 	public String delete(URL url, int timeout)
-			throws HttpClientException, SocketTimeoutException, EncodingException {
+		throws HttpClientException, SocketTimeoutException, EncodingException {
 		return delete(url, null, timeout);
 	}
 
 	protected String request(HttpMethod httpMethod, URL url, IMediaType requestMediaType, int timeout,
-			Parameter... parameters)
-			throws SocketTimeoutException, HttpClientException {
+		Parameter... parameters)
+		throws SocketTimeoutException, HttpClientException {
 		return request(httpMethod, url, requestMediaType, timeout, new ParameterValueMap(parameters));
 	}
 
 	protected String request(HttpMethod httpMethod, URL url, IMediaType requestMediaType, int timeout,
-			ParameterValueMap parameters)
-			throws SocketTimeoutException, HttpClientException {
+		ParameterValueMap parameters)
+		throws SocketTimeoutException, HttpClientException {
 		HttpURLConnection connection = null;
 		try {
 			connection = createConnection(
-					url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
+				url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
 			// PATCH not yet supported by JVM
 			setRequestMethod(httpMethod, connection);
 			if (!parameters.isEmpty()) {
@@ -153,18 +154,18 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			disconnect(connection);
 		}
 	}
-	
+
 	protected String request(HttpMethod httpMethod, URL url, int timeout, IResource resource)
-			throws SocketTimeoutException, HttpClientException {
+		throws SocketTimeoutException, HttpClientException {
 		HttpURLConnection connection = null;
 		try {
 			connection = createConnection(
-					url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
+				url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
 			// PATCH not yet supported by JVM
 			setRequestMethod(httpMethod, connection);
 			LOGGER.debug(String.format("Request Properties: %s", connection.getRequestProperties()));
 			LOGGER.debug(String.format("Request Method: %s", connection.getRequestMethod()));
-			if(resource != null){
+			if (resource != null) {
 				connection.setDoOutput(true);
 				PrintWriter writer = new PrintWriter(connection.getOutputStream());
 				writer.write(resource.toString());
@@ -187,7 +188,7 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		}
 		connection.setRequestMethod(httpMethod.toString());
 	}
-	
+
 	private void disconnect(HttpURLConnection connection) {
 		if (connection != null) {
 			connection.disconnect();
@@ -195,21 +196,21 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	private HttpClientException createException(IOException ioe, HttpURLConnection connection)
-			throws SocketTimeoutException {
+		throws SocketTimeoutException {
 		try {
 			int responseCode = connection.getResponseCode();
 			String errorMessage = createErrorMessage(ioe, connection);
 			switch (responseCode) {
-			case STATUS_INTERNAL_SERVER_ERROR:
-				return new InternalServerErrorException(errorMessage, ioe);
-			case STATUS_BAD_REQUEST:
-				return new BadRequestException(errorMessage, ioe);
-			case STATUS_UNAUTHORIZED:
-				return new UnauthorizedException(errorMessage, ioe);
-			case STATUS_NOT_FOUND:
-				return new NotFoundException(errorMessage, ioe);
-			default:
-				return new HttpClientException(errorMessage, ioe, responseCode);
+				case STATUS_INTERNAL_SERVER_ERROR:
+					return new InternalServerErrorException(errorMessage, ioe);
+				case STATUS_BAD_REQUEST:
+					return new BadRequestException(errorMessage, ioe);
+				case STATUS_UNAUTHORIZED:
+					return new UnauthorizedException(errorMessage, ioe);
+				case STATUS_NOT_FOUND:
+					return new NotFoundException(errorMessage, ioe);
+				default:
+					return new HttpClientException(errorMessage, ioe, responseCode);
 			}
 		} catch (SocketTimeoutException e) {
 			throw e;
@@ -219,12 +220,15 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	protected String createErrorMessage(IOException ioe, HttpURLConnection connection) throws IOException {
-		String errorMessage = IOUtils.toString(connection.getErrorStream());
-		if (!StringUtils.isEmpty(errorMessage)) {
-			return errorMessage;
+		InputStream error = connection.getErrorStream();
+		if (error != null) {
+			String errorMessage = IOUtils.toString(connection.getErrorStream());
+			if (!StringUtils.isEmpty(errorMessage)) {
+				return errorMessage;
+			}
 		}
 		StringBuilder builder = new StringBuilder("Connection to ")
-				.append(connection.getURL());
+			.append(connection.getURL());
 		String reason = connection.getResponseMessage();
 		if (!StringUtils.isEmpty(reason)) {
 			builder.append(": ").append(reason);
@@ -237,8 +241,8 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	protected HttpURLConnection createConnection(URL url, String userAgent, String acceptedVersion, String acceptedMediaType,
-			ISSLCertificateCallback callback, int timeout)
-			throws IOException {
+		ISSLCertificateCallback callback, int timeout)
+		throws IOException {
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		if (isHttps(url)) {
 			HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
@@ -269,20 +273,20 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	private void setAcceptHeader(String acceptedVersion, String acceptedMediaType, HttpURLConnection connection) {
 		if (StringUtils.isEmpty(acceptedMediaType)) {
 			throw new HttpClientException(MessageFormat.format(
-					"Accepted media type (ex. {0}) is not defined", MEDIATYPE_APPLICATION_JSON));
+				"Accepted media type (ex. {0}) is not defined", MEDIATYPE_APPLICATION_JSON));
 		}
 
 		StringBuilder builder = new StringBuilder(acceptedMediaType);
 		if (acceptedVersion != null) {
 			builder.append(SEMICOLON).append(SPACE)
-					.append(VERSION).append(EQUALS).append(acceptedVersion);
+				.append(VERSION).append(EQUALS).append(acceptedVersion);
 		}
 
 		connection.setRequestProperty(PROPERTY_ACCEPT, builder.toString());
 	}
 
 	protected final void setAuthorization(HttpURLConnection connection) {
-		if(authStrategy != null){
+		if (authStrategy != null) {
 			authStrategy.authorize(new URLConnectionRequest(connection));
 			return;
 		}
@@ -300,17 +304,18 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			connection.setSSLSocketFactory(sslContext.getSocketFactory());
 			return sslContext;
 		} catch (GeneralSecurityException e) {
-			LOGGER.warn("Could not install trust manager callback", e);;
+			LOGGER.warn("Could not install trust manager callback", e);
+			;
 			return null;
 		}
 	}
 
 	/**
 	 * Returns the callback trustmanager or <code>null</code> if it could not be created.
-	 * 
+	 *
 	 * @see ISSLCertificateCallback
 	 */
-	private X509TrustManager createCallbackTrustManager(ISSLCertificateCallback sslAuthorizationCallback,HttpsURLConnection connection) {
+	private X509TrustManager createCallbackTrustManager(ISSLCertificateCallback sslAuthorizationCallback, HttpsURLConnection connection) {
 		X509TrustManager trustManager = null;
 		try {
 			trustManager = getCurrentTrustManager();
@@ -320,17 +325,18 @@ public class UrlConnectionHttpClient implements IHttpClient {
 				trustManager = new CallbackTrustManager(trustManager, sslAuthorizationCallback);
 			}
 		} catch (GeneralSecurityException e) {
-			LOGGER.warn("Could not install trust manager callback.", e);;
+			LOGGER.warn("Could not install trust manager callback.", e);
+			;
 		}
 		return trustManager;
 	}
-		
+
 	/**
 	 * Sets a ssl socket factory that sets a filtered list of ciphers based on
 	 * the #excludedSSLCipherRegex to the given connection.
-	 * 
+	 *
 	 * @param sslContext
-	 * 
+	 *
 	 * @param sslContext
 	 *            the ssl context that shall be used
 	 * @param url
@@ -341,10 +347,10 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	protected SSLContext setFilteredCiphers(String excludedSSLCipherRegex, SSLContext sslContext, HttpsURLConnection connection) {
 		if (excludedSSLCipherRegex != null) {
 			connection.setSSLSocketFactory(
-					new EnabledCiphersSSLSocketFactory(
-							SSLUtils.filterCiphers(
-									excludedSSLCipherRegex, getSupportedCiphers(sslContext)), sslContext
-									.getSocketFactory()));
+				new EnabledCiphersSSLSocketFactory(
+					SSLUtils.filterCiphers(
+						excludedSSLCipherRegex, getSupportedCiphers(sslContext)), sslContext
+						.getSocketFactory()));
 		}
 		return sslContext;
 	}
@@ -366,27 +372,27 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	private int getTimeout(int timeout) {
-			if (timeout == NO_TIMEOUT) {
-				if (configTimeout != null) {
-					timeout = this.configTimeout;
-				}
+		if (timeout == NO_TIMEOUT) {
+			if (configTimeout != null) {
+				timeout = this.configTimeout;
 			}
+		}
 		return timeout;
 	}
 
 	private void setRequestMediaType(IMediaType mediaType, HttpURLConnection connection) {
 		if (mediaType == null
-				|| StringUtils.isEmpty(mediaType.getType())) {
+			|| StringUtils.isEmpty(mediaType.getType())) {
 			throw new HttpClientException(
-					MessageFormat.format("Request media type (ex. {0}) is not defined",
-							MEDIATYPE_APPLICATION_FORMURLENCODED));
+				MessageFormat.format("Request media type (ex. {0}) is not defined",
+					MEDIATYPE_APPLICATION_FORMURLENCODED));
 		}
-		connection.setRequestProperty(PROPERTY_CONTENT_TYPE, mediaType.getType());	
+		connection.setRequestProperty(PROPERTY_CONTENT_TYPE, mediaType.getType());
 	}
-	
+
 	private X509TrustManager getCurrentTrustManager() throws NoSuchAlgorithmException, KeyStoreException {
-		TrustManagerFactory trustManagerFactory = 
-				TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		TrustManagerFactory trustManagerFactory =
+			TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init((KeyStore) null);
 
 		X509TrustManager x509TrustManager = null;
@@ -398,7 +404,7 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		}
 		return x509TrustManager;
 	}
-	
+
 	@Override
 	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
@@ -413,22 +419,24 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	public void setAcceptedMediaType(String acceptedMediaType) {
 		this.acceptedMediaType = acceptedMediaType;
 	}
-	
+
 	public class CallbackTrustManager implements X509TrustManager {
 
-		private X509TrustManager trustManager;
-		private ISSLCertificateCallback callback;
+		private final X509TrustManager trustManager;
+		private final ISSLCertificateCallback callback;
 
-		private CallbackTrustManager(X509TrustManager currentTrustManager, ISSLCertificateCallback callback) 
-				throws NoSuchAlgorithmException, KeyStoreException {
-			this.trustManager = currentTrustManager; 
+		private CallbackTrustManager(X509TrustManager currentTrustManager, ISSLCertificateCallback callback)
+			throws NoSuchAlgorithmException, KeyStoreException {
+			this.trustManager = currentTrustManager;
 			this.callback = callback;
 		}
-		
+
+		@Override
 		public X509Certificate[] getAcceptedIssuers() {
 			return trustManager.getAcceptedIssuers();
 		}
 
+		@Override
 		public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 			try {
 				trustManager.checkServerTrusted(chain, authType);
@@ -439,6 +447,7 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			}
 		}
 
+		@Override
 		public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 			trustManager.checkServerTrusted(chain, authType);
 		}
@@ -451,17 +460,17 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			return sslAuthorizationCallback.allowHostname(hostname, session);
 		}
 	}
-	
+
 	/**
 	 * SSL socket factory that wraps a given socket factory and sets given ciphers
 	 * to the socket that the wrapped factory creates.
-	 * 
+	 *
 	 * @see http://stackoverflow.com/questions/6851461/java-why-does-ssl-handshake-give-could-not-generate-dh-keypair-exception/16686994#16686994
 	 */
 	private static class EnabledCiphersSSLSocketFactory extends SSLSocketFactory {
-		
-		private String[] enabledCiphers;
-		private SSLSocketFactory socketFactory;
+
+		private final String[] enabledCiphers;
+		private final SSLSocketFactory socketFactory;
 
 		EnabledCiphersSSLSocketFactory(String[] enabledCiphers, SSLSocketFactory socketFactory) {
 			this.enabledCiphers = enabledCiphers;
@@ -472,23 +481,23 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		public Socket createSocket(InetAddress host, int port, InetAddress localHost, int localPort) throws IOException {
 			return setEnabledCiphers((SSLSocket) socketFactory.createSocket(host, port, localHost, localPort));
 		}
-		
+
 		@Override
-		public Socket createSocket(String host, int port, InetAddress localHost, int localPort) 
-				throws IOException, UnknownHostException {
+		public Socket createSocket(String host, int port, InetAddress localHost, int localPort)
+			throws IOException, UnknownHostException {
 			return setEnabledCiphers((SSLSocket) socketFactory.createSocket(host, port, localHost, localPort));
 		}
-		
+
 		@Override
 		public Socket createSocket(InetAddress host, int port) throws IOException {
 			return setEnabledCiphers((SSLSocket) socketFactory.createSocket(host, port));
 		}
-		
+
 		@Override
 		public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
 			return setEnabledCiphers((SSLSocket) socketFactory.createSocket(host, port));
 		}
-		
+
 		@Override
 		public String[] getSupportedCipherSuites() {
 			if (enabledCiphers == null) {
@@ -497,17 +506,17 @@ public class UrlConnectionHttpClient implements IHttpClient {
 				return enabledCiphers;
 			}
 		}
-		
+
 		@Override
 		public String[] getDefaultCipherSuites() {
 			return socketFactory.getDefaultCipherSuites();
 		}
-		
+
 		@Override
 		public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException {
-			 return setEnabledCiphers((SSLSocket) socketFactory.createSocket(socket, host, port, autoClose));
+			return setEnabledCiphers((SSLSocket) socketFactory.createSocket(socket, host, port, autoClose));
 		}
-		
+
 		private SSLSocket setEnabledCiphers(SSLSocket socket) {
 			if (enabledCiphers == null) {
 				return socket;
@@ -516,5 +525,5 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			return socket;
 		}
 	}
-	
+
 }

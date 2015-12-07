@@ -10,55 +10,38 @@ package com.openshift.internal.restclient.model.build;
 
 import java.util.Map;
 
-import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.build.BuildStrategyType;
 import com.openshift.restclient.model.build.IDockerBuildStrategy;
 
 /**
  * @author Jeff Cantrill
  */
-public class DockerBuildStrategy implements IDockerBuildStrategy {
+public class DockerBuildStrategy extends BaseBuildStrategy implements IDockerBuildStrategy {
 
-    private final boolean noCache;
+	private final boolean noCache;
 
-    private final DockerImageURI image;
+	private final String contextDir;
 
-    private final String contextDir;
+	public DockerBuildStrategy(String contextDir, boolean noCache, Map<String, String> env) {
+		super(env);
+		this.contextDir = contextDir;
+		this.noCache = noCache;
+	}
 
-    private final Map<String, String> env;
+	@Override
+	public String getType() {
+		return BuildStrategyType.DOCKER;
+	}
 
-    public DockerBuildStrategy(String contextDir, boolean noCache,
-        String baseImage, Map<String, String> env) {
-        this.contextDir = contextDir;
-        this.noCache = noCache;
-        this.image = new DockerImageURI(baseImage);
-        this.env = env;
-    }
+	@Override
+	public String getContextDir() {
+		return contextDir;
+	}
 
-    @Override
-    public String getType() {
-        return BuildStrategyType.DOCKER;
-    }
-
-    @Override
-    public String getContextDir() {
-        return contextDir;
-    }
-
-    @Override
-    public boolean isNoCache() {
-        // TODO Auto-generated method stub
-        return noCache;
-    }
-
-    @Override
-    public DockerImageURI getBaseImage() {
-        return image;
-    }
-
-    @Override
-    public Map<String, String> getEnv() {
-        return env;
-    }
+	@Override
+	public boolean isNoCache() {
+		// TODO Auto-generated method stub
+		return noCache;
+	}
 
 }

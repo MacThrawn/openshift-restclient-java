@@ -3,7 +3,7 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient;
@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.openshift.internal.restclient.model.ServiceAccount;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
@@ -38,6 +37,7 @@ import com.openshift.internal.restclient.model.ResourceQuota;
 import com.openshift.internal.restclient.model.Route;
 import com.openshift.internal.restclient.model.Secret;
 import com.openshift.internal.restclient.model.Service;
+import com.openshift.internal.restclient.model.ServiceAccount;
 import com.openshift.internal.restclient.model.Status;
 import com.openshift.internal.restclient.model.authorization.OpenshiftPolicy;
 import com.openshift.internal.restclient.model.authorization.OpenshiftRole;
@@ -61,12 +61,12 @@ import com.openshift.restclient.UnsupportedVersionException;
 import com.openshift.restclient.model.IResource;
 
 /**
- * ResourceFactory creates a list of resources from a json string 
- * 
+ * ResourceFactory creates a list of resources from a json string
+ *
  * @author Jeff Cantrill
  */
-public class ResourceFactory implements IResourceFactory{
-	
+public class ResourceFactory implements IResourceFactory {
+
 	private static final String KIND = "kind";
 	private static final String APIVERSION = "apiVersion";
 	private static final Map<String, Class<? extends IResource>> IMPL_MAP = new HashMap<String, Class<? extends IResource>>();
@@ -92,7 +92,7 @@ public class ResourceFactory implements IResourceFactory{
 		IMPL_MAP.put(ResourceKind.ROUTE, Route.class);
 		IMPL_MAP.put(ResourceKind.TEMPLATE, Template.class);
 		IMPL_MAP.put(ResourceKind.USER, OpenShiftUser.class);
-		
+
 		//Kubernetes Kinds
 		IMPL_MAP.put(ResourceKind.EVENT, KubernetesEvent.class);
 		IMPL_MAP.put(ResourceKind.LIMIT_RANGE, LimitRange.class);
@@ -104,32 +104,33 @@ public class ResourceFactory implements IResourceFactory{
 		IMPL_MAP.put(ResourceKind.SERVICE, Service.class);
 		IMPL_MAP.put(ResourceKind.SECRET, Secret.class);
 		IMPL_MAP.put(ResourceKind.SERVICE_ACCOUNT, ServiceAccount.class);
-		
+
 		//fallback
 		IMPL_MAP.put(ResourceKind.UNRECOGNIZED, KubernetesResource.class);
-		
+
 	}
-	private IClient client;
-	
+	private final IClient client;
+
 	public ResourceFactory(IClient client) {
 		this.client = client;
 	}
-	
-	public static Map<String, Class<? extends IResource>> getImplMap(){
+
+	public static Map<String, Class<? extends IResource>> getImplMap() {
 		return Collections.unmodifiableMap(IMPL_MAP);
 	}
 
-	public List<IResource> createList(String json, String kind){
+	@Override
+	public List<IResource> createList(String json, String kind) {
 		ModelNode data = ModelNode.fromJSONString(json);
 		final String dataKind = data.get(KIND).asString();
-		if(!(kind.toString() + "List").equals(dataKind)){
+		if (!(kind.toString() + "List").equals(dataKind)) {
 			throw new RuntimeException(String.format("Unexpected container type '%s' for desired kind: %s", dataKind, kind));
 		}
-		
-		try{
+
+		try {
 			final String version = data.get(APIVERSION).asString();
 			return buildList(version, data.get("items").asList(), kind);
-		}catch(Exception e){
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -141,7 +142,7 @@ public class ResourceFactory implements IResourceFactory{
 		}
 		return resources;
 	}
-	
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends IResource> T create(InputStream input) {
@@ -157,8 +158,7 @@ public class ResourceFactory implements IResourceFactory{
 			throw new ResourceFactoryException(e, "There was an exception creating the resource from the InputStream");
 		}
 	}
-	
-	
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends IResource> T create(String response) {
@@ -168,18 +168,21 @@ public class ResourceFactory implements IResourceFactory{
 	@Override
 	public IResource create(String response, boolean strict) {
 		try {
+			if (response == null || response.length() <= 0) {
+				// a webhook does not return a palyoad this results in an error.
+				return null;
+			}
 			ModelNode node = ModelNode.fromJSONString(response);
 			String version = node.get(APIVERSION).asString();
 			String kind = node.get(KIND).asString();
 			return create(node, version, kind, strict);
 		} catch (UnsupportedVersionException e) {
 			throw e;
-		}catch(Exception e) {
+		} catch (Exception e) {
 			throw new ResourceFactoryException(e, "There was an exception creating the resource from: %s", response);
 		}
 	}
-	
-	
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends IResource> T create(String version, String kind) {
@@ -196,15 +199,15 @@ public class ResourceFactory implements IResourceFactory{
 			node.get(APIVERSION).set(version);
 			node.get(KIND).set(kind.toString());
 			Map<String, String[]> properyKeyMap = ResourcePropertiesRegistry.getInstance().get(version, kind);
-			if(IMPL_MAP.containsKey(kind)) {
-				Constructor<? extends IResource> constructor =  IMPL_MAP.get(kind).getConstructor(ModelNode.class, IClient.class, Map.class);
+			if (IMPL_MAP.containsKey(kind)) {
+				Constructor<? extends IResource> constructor = IMPL_MAP.get(kind).getConstructor(ModelNode.class, IClient.class, Map.class);
 				return constructor.newInstance(node, client, properyKeyMap);
 			}
 			return new KubernetesResource(node, client, properyKeyMap);
 		} catch (UnsupportedVersionException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new ResourceFactoryException(e,"Unable to create %s resource kind %s from %s", version, kind, node);
+			throw new ResourceFactoryException(e, "Unable to create %s resource kind %s from %s", version, kind, node);
 		}
 	}
 
@@ -215,7 +218,7 @@ public class ResourceFactory implements IResourceFactory{
 		String version = client.getOpenShiftAPIVersion();
 		KubernetesResource resource = (KubernetesResource) create(version, kind, true);
 		resource.setName(name);
-		if(StringUtils.isNotEmpty(namespace)) {
+		if (StringUtils.isNotEmpty(namespace)) {
 			resource.setNamespace(namespace);
 		}
 		return (T) resource;
@@ -226,6 +229,4 @@ public class ResourceFactory implements IResourceFactory{
 		return stub(kind, name, null);
 	}
 
-	
-	
 }

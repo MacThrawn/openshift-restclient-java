@@ -3,14 +3,13 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient.model.build;
 
 import java.util.Map;
 
-import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.build.BuildStrategyType;
 import com.openshift.restclient.model.build.ISTIBuildStrategy;
 
@@ -18,18 +17,15 @@ import com.openshift.restclient.model.build.ISTIBuildStrategy;
  * @author Jeff Cantrill
  */
 @Deprecated
-public class STIBuildStrategy implements ISTIBuildStrategy{
+public class STIBuildStrategy extends BaseBuildStrategy implements ISTIBuildStrategy {
 
-	private DockerImageURI image;
-	private String scriptsLocation;
-	private boolean incremental;
-	private Map<String, String> envVars;
+	private final String scriptsLocation;
+	private final boolean incremental;
 
-	public STIBuildStrategy(String image, String scriptsLocation, boolean incremental, Map<String, String> envVars) {
-		this.image = new DockerImageURI(image);
+	public STIBuildStrategy(String scriptsLocation, boolean incremental, Map<String, String> envVars) {
+		super(envVars);
 		this.scriptsLocation = scriptsLocation;
 		this.incremental = incremental;
-		this.envVars = envVars;
 	}
 
 	@Override
@@ -38,18 +34,8 @@ public class STIBuildStrategy implements ISTIBuildStrategy{
 	}
 
 	@Override
-	public DockerImageURI getImage() {
-		return image;
-	}
-
-	@Override
 	public String getScriptsLocation() {
 		return scriptsLocation;
-	}
-
-	@Override
-	public Map<String, String> getEnvironmentVariables() {
-		return envVars;
 	}
 
 	@Override

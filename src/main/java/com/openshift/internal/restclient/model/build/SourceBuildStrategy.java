@@ -16,20 +16,19 @@ import com.openshift.restclient.model.build.BuildStrategyType;
 import com.openshift.restclient.model.build.ISourceBuildStrategy;
 
 /**
- * 
+ *
  * @author jeff.cantrill
  *
  */
-public class SourceBuildStrategy extends STIBuildStrategy implements ISourceBuildStrategy{
+public class SourceBuildStrategy extends STIBuildStrategy implements ISourceBuildStrategy {
 
-	public SourceBuildStrategy(String image, String scriptsLocation, boolean incremental, Map<String, String> envVars) {
-		super(image, scriptsLocation, incremental, envVars);
+	public SourceBuildStrategy(String scriptsLocation, boolean incremental, Map<String, String> envVars) {
+		super(scriptsLocation, incremental, envVars);
 	}
 
 	@Override
 	public String getType() {
 		return BuildStrategyType.SOURCE;
 	}
-	
-	
+
 }
