@@ -266,7 +266,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	public <T extends IObjectReference> T getOutput() {
 		ModelNode output = get(BUILDCONFIG_OUTPUT_TO);
 		switch (output.get("kind").asString()) {
-			case ResourceKind.IMAGE_STREAM:
+			case ResourceKind.IMAGE_STREAM_TAG:
 				DockerImageURI uri = new DockerImageURI(output.get("name").asString());
 				return (T) new ImageStreamReferenceTag(uri.getName(), output.get("namespace").asString(), uri.getTag());
 			case "undefined":
