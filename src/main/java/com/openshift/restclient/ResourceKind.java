@@ -26,6 +26,7 @@ public final class ResourceKind {
 	public static final String DEPLOYMENT_CONFIG = "DeploymentConfig";
 	public static final String IMAGE_STREAM = "ImageStream";
 	public static final String IMAGE_STREAM_TAG = "ImageStreamTag";
+	public static final String IMAGE_STREAM_IMAGE = "ImageStreamImage";
 	public static final String OAUTH_ACCESS_TOKEN = "OAuthAccessToken";
 	public static final String OAUTH_AUTHORIZE_TOKEN = "OAuthAuthorizeToken";
 	public static final String OAUTH_CLIENT = "OAuthClient";

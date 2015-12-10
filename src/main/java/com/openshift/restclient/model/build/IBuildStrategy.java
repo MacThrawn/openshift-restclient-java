@@ -10,7 +10,7 @@ package com.openshift.restclient.model.build;
 
 import java.util.Map;
 
-import com.openshift.internal.restclient.model.build.ImageStreamReference;
+import com.openshift.internal.restclient.model.ImageStreamReferenceTag;
 
 /**
  * @author Jeff Cantrill
@@ -24,9 +24,9 @@ public interface IBuildStrategy {
 	 */
 	String getType();
 
-	ImageStreamReference getFrom();
+	ImageStreamReferenceTag getFrom();
 
-	void setFrom(ImageStreamReference from);
+	void setFrom(ImageStreamReferenceTag from);
 
 	Map<String, String> getEnvironmentVariables();
 }

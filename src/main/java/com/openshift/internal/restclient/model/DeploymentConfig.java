@@ -93,7 +93,7 @@ public class DeploymentConfig extends PodTemplate implements IDeploymentConfig {
 
 	@Override
 	public int getLatestVersion() {
-		return get(DEPLOYMENTCONFIG_STATUS_LATEST_VERSION).asInt();
+		return get(DEPLOYMENTCONFIG_STATUS_LATEST_VERSION).asInt(0);
 	}
 
 	@Override

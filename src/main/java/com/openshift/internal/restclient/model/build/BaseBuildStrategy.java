@@ -2,11 +2,13 @@ package com.openshift.internal.restclient.model.build;
 
 import java.util.Map;
 
+import com.openshift.internal.restclient.model.ImageStreamReferenceTag;
+
 import com.openshift.restclient.model.build.IBuildStrategy;
 
 public abstract class BaseBuildStrategy implements IBuildStrategy {
 
-	private ImageStreamReference from;
+	private ImageStreamReferenceTag from;
 	private final Map<String, String> env;
 
 	public BaseBuildStrategy(Map<String, String> env) {
@@ -14,7 +16,7 @@ public abstract class BaseBuildStrategy implements IBuildStrategy {
 	}
 
 	@Override
-	public ImageStreamReference getFrom() {
+	public ImageStreamReferenceTag getFrom() {
 		return from;
 	}
 
@@ -24,7 +26,7 @@ public abstract class BaseBuildStrategy implements IBuildStrategy {
 	}
 
 	@Override
-	public void setFrom(ImageStreamReference from) {
+	public void setFrom(ImageStreamReferenceTag from) {
 		this.from = from;
 	}
 }

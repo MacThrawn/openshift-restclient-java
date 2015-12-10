@@ -16,11 +16,12 @@ import org.jboss.dmr.ModelNode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.openshift.internal.restclient.model.ImageStreamReferenceTag;
+
 import com.openshift.internal.restclient.ResourceFactory;
 import com.openshift.internal.restclient.model.BuildConfig;
 import com.openshift.internal.restclient.model.build.GitBuildSource;
 import com.openshift.internal.restclient.model.build.ImageChangeTrigger;
-import com.openshift.internal.restclient.model.build.ImageStreamReference;
 import com.openshift.internal.restclient.model.build.SourceBuildStrategy;
 import com.openshift.internal.restclient.model.build.WebhookTrigger;
 import com.openshift.restclient.IClient;
@@ -36,7 +37,6 @@ import com.openshift.restclient.model.build.IBuildTrigger;
 import com.openshift.restclient.model.build.IGitBuildSource;
 import com.openshift.restclient.model.build.ISourceBuildStrategy;
 import com.openshift.restclient.utils.Samples;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -128,9 +128,9 @@ public class BuildConfigTest {
 	public void setOutputRepository() {
 		BuildConfig writeConfig = new ResourceFactory(client) {
 		}.create(VERSION, ResourceKind.BUILD_CONFIG);
-		writeConfig.setOutput(new ImageStreamReference("origin-ruby-sample", "latest"));
+		writeConfig.setOutput(new ImageStreamReferenceTag("origin-ruby-sample", "latest"));
 		assertEquals("origin-ruby-sample:latest", writeConfig.getOutputRepositoryName());
-		ImageStreamReference reference = writeConfig.getOutput();
+		ImageStreamReferenceTag reference = writeConfig.getOutput();
 		assertEquals("origin-ruby-sample:latest", reference.getName());
 		assertEquals("latest", reference.getTag());
 	}

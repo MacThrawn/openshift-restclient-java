@@ -1,18 +1,17 @@
-package com.openshift.internal.restclient.model.build;
+package com.openshift.internal.restclient.model;
 
-import com.openshift.internal.restclient.model.ObjectReference;
 import com.openshift.restclient.ResourceKind;
 
-public class ImageStreamReference extends ObjectReference {
+public class ImageStreamReferenceTag extends ObjectReference {
 
 	private final String tag;
 
-	public ImageStreamReference(String name, String namespace, String tag) {
+	public ImageStreamReferenceTag(String name, String namespace, String tag) {
 		super(ResourceKind.IMAGE_STREAM_TAG, name, namespace);
 		this.tag = tag;
 	}
 
-	public ImageStreamReference(String name, String tag) {
+	public ImageStreamReferenceTag(String name, String tag) {
 		this(name, null, tag);
 	}
 

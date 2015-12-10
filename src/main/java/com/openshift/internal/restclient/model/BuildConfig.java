@@ -20,7 +20,6 @@ import com.openshift.internal.restclient.model.build.CustomBuildStrategy;
 import com.openshift.internal.restclient.model.build.DockerBuildStrategy;
 import com.openshift.internal.restclient.model.build.GitBuildSource;
 import com.openshift.internal.restclient.model.build.ImageChangeTrigger;
-import com.openshift.internal.restclient.model.build.ImageStreamReference;
 import com.openshift.internal.restclient.model.build.SourceBuildStrategy;
 import com.openshift.internal.restclient.model.build.WebhookTrigger;
 import com.openshift.restclient.IClient;
@@ -243,7 +242,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				break;
 		}
 
-		ImageStreamReference isr = strategy.getFrom();
+		ImageStreamReferenceTag isr = strategy.getFrom();
 		if (isr != null) {
 			set(from + ".kind", isr.getKind());
 			set(from + ".namespace", isr.getNamespace());
@@ -269,7 +268,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 		switch (output.get("kind").asString()) {
 			case ResourceKind.IMAGE_STREAM:
 				DockerImageURI uri = new DockerImageURI(output.get("name").asString());
-				return (T) new ImageStreamReference(uri.getName(), output.get("namespace").asString(), uri.getTag());
+				return (T) new ImageStreamReferenceTag(uri.getName(), output.get("namespace").asString(), uri.getTag());
 			case "undefined":
 				return null;
 			default:
