@@ -37,6 +37,7 @@ import com.openshift.restclient.model.build.ICustomBuildStrategy;
 import com.openshift.restclient.model.build.IDockerBuildStrategy;
 import com.openshift.restclient.model.build.IGitBuildSource;
 import com.openshift.restclient.model.build.IImageChangeTrigger;
+import com.openshift.restclient.model.build.IImageChangeTriggerEmpty;
 import com.openshift.restclient.model.build.ISTIBuildStrategy;
 import com.openshift.restclient.model.build.IWebhookTrigger;
 
@@ -68,6 +69,7 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 	private static final String BUILDCONFIG_TRIGGERS = "spec.triggers";
 	private static final String BUILD_CONFIG_WEBHOOK_GITHUB_SECRET = "github.secret";
 	private static final String BUILD_CONFIG_WEBHOOK_GENERIC_SECRET = "generic.secret";
+	private static final String BUILD_CONFIG_IMAGECHANGE = "imageChange";
 	private static final String BUILD_CONFIG_IMAGECHANGE_IMAGE = "imageChange.image";
 	private static final String BUILD_CONFIG_IMAGECHANGE_NAME = "imageChange.from.name";
 	private static final String BUILD_CONFIG_IMAGECHANGE_TAG = "imageChange.tag";
@@ -133,9 +135,14 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 				break;
 			case BuildTriggerType.imageChange:
 			case BuildTriggerType.IMAGE_CHANGE:
+				if (trigger instanceof IImageChangeTriggerEmpty) {
+					triggerNode.get("imageChange").set("chopsuey", "placeholder");
+					break;
+				}
 				if (!(trigger instanceof IImageChangeTrigger)) {
 					throw new IllegalArgumentException("IBuildTrigger of type imageChange does not implement IImageChangeTrigger");
 				}
+
 				IImageChangeTrigger image = (IImageChangeTrigger) trigger;
 				triggerNode.get(getPath(BUILD_CONFIG_IMAGECHANGE_IMAGE)).set(defaultIfNull(image.getImage()));
 				triggerNode.get(getPath(BUILD_CONFIG_IMAGECHANGE_NAME)).set(defaultIfNull(image.getFrom()));

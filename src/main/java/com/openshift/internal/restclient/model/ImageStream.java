@@ -88,18 +88,21 @@ public class ImageStream extends KubernetesResource implements IImageStream {
 				if (reference.getName().equals(node.get("name").asString())) {
 					createObjectReferenceNode(node.get("from"), reference);
 					replaced = true;
+					break;
 				}
 			}
 		}
 		if (!replaced) {
 			if (modelNode.getType() != ModelType.LIST) {
-				modelNode.set(ModelType.LIST);
+				//modelNode.set(ModelType.LIST);
+				modelNode.setEmptyList();
 			}
-			ModelNode node = new ModelNode();
-			node.set("name", reference.getName());
-			ModelNode from = new ModelNode();
-			node.set("from", from);
-			modelNode.add(node);
+			ModelNode tag = new ModelNode();
+
+			tag.get("name").set(reference.getName());
+			ModelNode from = tag.get("from");
+			createObjectReferenceNode(from, reference);
+			modelNode.add(tag);
 		}
 	}
 
