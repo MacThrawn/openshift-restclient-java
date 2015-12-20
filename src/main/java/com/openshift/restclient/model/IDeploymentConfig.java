@@ -61,6 +61,13 @@ public interface IDeploymentConfig extends IResource, IPodTemplate {
 	Collection<String> getTriggerTypes();
 
 	/**
+	 * Get the list of deployment triggers
+	 * 
+	 * @return a collection of triggers
+	 */
+	Collection<IDeploymentTrigger> getTrigger();
+
+	/**
 	 * Convenience method to get the deployment
 	 * strategy type
 	 *

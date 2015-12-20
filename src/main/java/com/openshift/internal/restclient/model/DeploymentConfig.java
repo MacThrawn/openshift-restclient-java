@@ -1,6 +1,7 @@
 package com.openshift.internal.restclient.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,22 @@ public class DeploymentConfig extends PodTemplate implements IDeploymentConfig {
 	}
 
 	@Override
+	public Collection<IDeploymentTrigger> getTrigger() {
+		List<IDeploymentTrigger> types = new ArrayList<>();
+		ModelNode triggers = get(DEPLOYMENTCONFIG_TRIGGERS);
+		for (ModelNode node : triggers.asList()) {
+			switch (node.get(TYPE).asString()) {
+				case DeploymentTriggerType.IMAGE_CHANGE:
+					types.add(new ImageChangeTrigger(node, propertyKeys));
+				case DeploymentTriggerType.CONFIG_CHANGE:
+				default:
+			}
+			types.add(new DeploymentTrigger(node, propertyKeys));
+		}
+		return types;
+	}
+
+	@Override
 	public int getReplicas() {
 		return asInt(DEPLOYMENTCONFIG_REPLICAS);
 	}
@@ -100,4 +117,5 @@ public class DeploymentConfig extends PodTemplate implements IDeploymentConfig {
 	public void setLatestVersion(int i) {
 		set(DEPLOYMENTCONFIG_STATUS_LATEST_VERSION, i);
 	}
+
 }
