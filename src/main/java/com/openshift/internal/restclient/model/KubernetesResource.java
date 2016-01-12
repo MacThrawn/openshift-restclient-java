@@ -3,14 +3,15 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient.model;
 
-import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,27 +28,31 @@ import com.openshift.restclient.capability.ICapability;
 import com.openshift.restclient.model.IProject;
 import com.openshift.restclient.model.IResource;
 
+import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
+
 /**
  * Resource is an abstract representation of a Kubernetes resource
- * 
+ *
  * @author Jeff Cantrill
  */
 public class KubernetesResource implements IResource, ResourcePropertyKeys {
-	
+
 	private ModelNode node;
-	private IClient client;
-	private Map<Class<? extends ICapability>, ICapability> capabilities = new HashMap<Class<? extends ICapability>, ICapability>();
-	private Map<String, String []> propertyKeys;
+	private final IClient client;
+	private final Map<Class<? extends ICapability>, ICapability> capabilities = new HashMap<Class<? extends ICapability>, ICapability>();
+	private final Map<String, String[]> propertyKeys;
 	private IProject project;
-	
+
 	/**
-	 * 
+	 *
 	 * @param node
 	 * @param client
-	 * @param overrideProperties  the map of properties that override the defaults
+	 * @param overrideProperties the map of properties that override the defaults
 	 */
-	public KubernetesResource(ModelNode node, IClient client, Map<String, String []> overrideProperties){
-		if(overrideProperties == null) overrideProperties = new HashMap<String, String []>();
+	public KubernetesResource(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
+		if (overrideProperties == null) {
+			overrideProperties = new HashMap<String, String[]>();
+		}
 		this.node = node;
 		this.client = client;
 		this.propertyKeys = overrideProperties;
@@ -59,34 +64,35 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 	public <T extends ICapability> T getCapability(Class<T> capability) {
 		return (T) capabilities.get(capability);
 	}
-	
-	public Set<Class<? extends ICapability>> getCapabilities(){
+
+	@Override
+	public Set<Class<? extends ICapability>> getCapabilities() {
 		return Collections.unmodifiableSet(capabilities.keySet());
 	}
-	
-	protected Map<Class<? extends ICapability>, ICapability> getModifiableCapabilities(){
+
+	protected Map<Class<? extends ICapability>, ICapability> getModifiableCapabilities() {
 		return capabilities;
 	}
-	
+
 	@Override
 	public boolean supports(Class<? extends ICapability> capability) {
 		return capabilities.containsKey(capability);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ICapability, R> R accept(CapabilityVisitor<T, R> visitor, R unsupportedValue){
-		if(capabilities.containsKey(visitor.getCapabilityType())){
+	public <T extends ICapability, R> R accept(CapabilityVisitor<T, R> visitor, R unsupportedValue) {
+		if (capabilities.containsKey(visitor.getCapabilityType())) {
 			T capability = (T) capabilities.get(visitor.getCapabilityType());
-			return (R) visitor.visit(capability);
+			return visitor.visit(capability);
 		}
 		return unsupportedValue;
 	}
-	
+
 	@Override
 	public IProject getProject() {
-		if(this.project == null) {
-			this.project = client.get(ResourceKind.PROJECT, getNamespace(), ""); 
+		if (this.project == null) {
+			this.project = client.get(ResourceKind.PROJECT, getNamespace(), "");
 		}
 		return this.project;
 	}
@@ -100,11 +106,12 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 	public String getAnnotation(String key) {
 		return getAnnotations().get(key);
 	}
-	
-	
+
 	@Override
 	public void setAnnotation(String name, String value) {
-		if(value == null) return;
+		if (value == null) {
+			return;
+		}
 		ModelNode annotations = get(ANNOTATIONS);
 		annotations.get(name).set(value);
 	}
@@ -114,57 +121,58 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 		Map<String, String> annotations = getAnnotations();
 		return annotations.containsKey(key);
 	}
-	
-	public IClient getClient(){
+
+	public IClient getClient() {
 		return client;
 	}
-	
-	public ModelNode getNode(){
+
+	public ModelNode getNode() {
 		return node;
 	}
-	
-	public void refresh(){
+
+	public void refresh() {
 		//TODO find better way to bypass serialization/deserialization
 		this.node = ModelNode.fromJSONString(client.get(getKind(), getName(), getNamespace()).toString());
 	}
-	
+
 	@Override
-	public String getKind(){
+	public String getKind() {
 		ModelNode kindNode = get(ResourcePropertyKeys.KIND);
-		if(kindNode.isDefined()){
+		if (kindNode.isDefined()) {
 			return kindNode.asString();
 		}
 		return null;
 	}
-	
+
 	@Override
-	public String getApiVersion(){
+	public String getApiVersion() {
 		return asString(APIVERSION);
 	}
-	
+
 	@Override
-	public String getCreationTimeStamp(){
+	public String getCreationTimeStamp() {
 		return asString(CREATION_TIMESTAMP);
 	}
+
 	@Override
-	public String getName(){
+	public String getName() {
 		return asString(METADATA_NAME);
 	}
-	
+
 	public void setName(String name) {
 		set(METADATA_NAME, name);
 	}
-	
+
 	@Override
-	public String getNamespace(){
+	public String getNamespace() {
 		ModelNode node = get(NAMESPACE);
-		if(node.getType() == ModelType.UNDEFINED){
+		if (node.getType() == ModelType.UNDEFINED) {
 			return "";
 		}
 		return node.asString();
 	}
-	
-	public void setNamespace(String namespace){
+
+	public void setNamespace(String namespace) {
 		set(NAMESPACE, namespace);
 	}
 
@@ -173,25 +181,25 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 		ModelNode labels = node.get(getPath(LABELS));
 		labels.get(key).set(value);
 	}
-	
-	
+
 	@Override
 	public Map<String, String> getLabels() {
 		return asMap(LABELS);
 	}
-	
+
 	/*---------- utility methods ------*/
-	protected ModelNode get(String key){
+	protected ModelNode get(String key) {
 		return get(node, key);
 	}
-	protected ModelNode get(ModelNode node, String key){
+
+	protected ModelNode get(ModelNode node, String key) {
 		return node.get(getPath(key));
 	}
 
 	protected Map<String, String> getEnvMap(String key) {
 		Map<String, String> values = new HashMap<String, String>();
 		ModelNode source = node.get(getPath(key));
-		if(source.getType() == ModelType.LIST){
+		if (source.getType() == ModelType.LIST) {
 			for (ModelNode value : source.asList()) {
 				values.put(value.get("name").asString(), value.get("value").asString());
 			}
@@ -202,34 +210,34 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 	protected void set(String key, Map<String, String> values) {
 		JBossDmrExtentions.set(node, propertyKeys, key, values);
 	}
-	
+
 	protected void set(String key, int value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
-	
+
 	protected void set(ModelNode node, String key, int value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
-	
-	protected void set(String key, String value){
+
+	protected void set(String key, String value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
 
-	protected void set(ModelNode node, String key, String value){
+	protected void set(ModelNode node, String key, String value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
 
-	protected void set(String key, boolean value){
+	protected void set(String key, boolean value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
-	
-	protected void set(ModelNode node, String key, boolean value){
+
+	protected void set(ModelNode node, String key, boolean value) {
 		JBossDmrExtentions.set(node, propertyKeys, key, value);
 	}
 
 	protected void setEnvMap(String key, Map<String, String> values) {
 		ModelNode mapNodeParent = node.get(getPath(key));
-		for(Map.Entry<String, String> value: values.entrySet()) {
+		for (Map.Entry<String, String> value : values.entrySet()) {
 			ModelNode mapNode = mapNodeParent.add();
 			mapNode.get("name").set(value.getKey());
 			mapNode.get("value").set(value.getValue());
@@ -239,24 +247,24 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 	protected String[] getPath(String key) {
 		return JBossDmrExtentions.getPath(propertyKeys, key);
 	}
-	
+
 	protected String asString(ModelNode node, String subKey) {
 		return JBossDmrExtentions.asString(node, propertyKeys, subKey);
 	}
-	
-	protected int asInt(String key){
+
+	protected int asInt(String key) {
 		return JBossDmrExtentions.asInt(node, propertyKeys, key);
 	}
-	
-	protected int asInt(ModelNode node, String key){
+
+	protected int asInt(ModelNode node, String key) {
 		return JBossDmrExtentions.asInt(node, propertyKeys, key);
 	}
-	
-	protected Map<String, String> asMap(String property){
+
+	protected Map<String, String> asMap(String property) {
 		return JBossDmrExtentions.asMap(this.node, propertyKeys, property);
 	}
-	
-	protected String asString(String property){
+
+	protected String asString(String property) {
 		return JBossDmrExtentions.asString(node, propertyKeys, property);
 	}
 
@@ -268,31 +276,31 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 	public String toString() {
 		return node.toJSONString(true);
 	}
-	
-	public String toPrettyString(){
+
+	public String toPrettyString() {
 		return node.toJSONString(false);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		String namespace = getNamespace();
 		String name = getName();
 		String kind = getKind();
 		final int prime = 31;
-		return prime * (namespace.hashCode() + name.hashCode() + kind.hashCode()); 
+		return prime * (namespace.hashCode() + name.hashCode() + kind.hashCode());
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		else if (obj == null)
+		} else if (obj == null) {
 			return false;
-		else if (getClass() != obj.getClass())
+		} else if (getClass() != obj.getClass()) {
 			return false;
-		else {
-			KubernetesResource other = (KubernetesResource) obj; 
-			if (getKind() != null){
+		} else {
+			KubernetesResource other = (KubernetesResource) obj;
+			if (getKind() != null) {
 				if (!getKind().equals(other.getKind())) {
 					return false;
 				}
@@ -302,7 +310,7 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 				}
 			}
 			if (getNamespace() != null) {
-				if(!getNamespace().equals(other.getNamespace())) {
+				if (!getNamespace().equals(other.getNamespace())) {
 					return false;
 				}
 			} else {
@@ -311,7 +319,7 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 				}
 			}
 			if (getName() != null) {
-				if(!getName().equals(other.getName())) {
+				if (!getName().equals(other.getName())) {
 					return false;
 				}
 			} else {
@@ -319,7 +327,7 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 					return false;
 				}
 			}
-			
+
 		}
 		return true;
 	}
@@ -334,7 +342,14 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 		return node.toJSONString(compact);
 	}
 
-	
+	@Override
+	public Date getCreated() {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		try {
+			return df.parse(getCreationTimeStamp());
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }
-
-
