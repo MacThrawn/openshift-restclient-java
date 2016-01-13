@@ -10,11 +10,19 @@
  ******************************************************************************/
 package com.openshift.restclient.model;
 
-import com.openshift.restclient.model.IResource;
-
 /**
  * @author jeff.cantrill
  */
 public interface IEvent extends IResource {
+
+	IInvolvedObject getInvolvedObject();
+
+	String getSourceComponent();
+
+	String getReason();
+
+	String getMessage();
+
+	int getCount();
 
 }
