@@ -10,11 +10,13 @@
  ******************************************************************************/
 package com.openshift.restclient.model;
 
-import com.openshift.restclient.model.IResource;
 
 /**
  * @author jeff.cantrill
  */
 public interface IResourceQuota extends IResource {
 
+	IResourceQuotaItem getHard();
+
+	IResourceQuotaItem getUsed();
 }
