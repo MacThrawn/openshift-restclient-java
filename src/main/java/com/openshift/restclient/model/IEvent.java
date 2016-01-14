@@ -25,4 +25,6 @@ public interface IEvent extends IResource {
 
 	int getCount();
 
+	String getUid();
+
 }

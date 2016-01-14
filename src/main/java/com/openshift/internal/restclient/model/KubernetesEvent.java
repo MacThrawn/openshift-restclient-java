@@ -28,6 +28,7 @@ public class KubernetesEvent extends KubernetesResource implements IEvent {
 	private static final String MESSAGE = "message";
 	private static final String SOURCE_COMPONENT = "source.component";
 	private static final String COUNT = "count";
+	private static final String METADATA_UID = "metadata.uid";
 
 	public KubernetesEvent(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
 		super(node, client, propertyKeys);
@@ -56,6 +57,11 @@ public class KubernetesEvent extends KubernetesResource implements IEvent {
 	@Override
 	public int getCount() {
 		return get(COUNT).asInt();
+	}
+
+	@Override
+	public String getUid() {
+		return get(METADATA_UID).asString();
 	}
 
 }
