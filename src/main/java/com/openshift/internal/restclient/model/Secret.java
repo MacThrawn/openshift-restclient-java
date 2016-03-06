@@ -3,7 +3,7 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient.model;
@@ -24,12 +24,11 @@ import com.openshift.restclient.utils.Base64Coder;
  * @author Jiri Pechanec
  */
 public class Secret extends KubernetesResource implements ISecret {
-	
+
 	private static final String SECRET_TYPE = "type";
 	private static final String SECRET_DATA = "data";
 
-
-	public Secret(ModelNode node, IClient client, Map<String, String []> propertyKeys) {
+	public Secret(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
 		super(node, client, propertyKeys);
 	}
 
@@ -39,8 +38,7 @@ public class Secret extends KubernetesResource implements ISecret {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			IOUtils.copy(data, os);
 			addData(key, os.toByteArray());
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new IllegalArgumentException("Could not process data stream", e);
 		}
 	}
@@ -57,6 +55,11 @@ public class Secret extends KubernetesResource implements ISecret {
 	}
 
 	@Override
+	public Map<String, String> getData() {
+		return asMap(SECRET_DATA);
+	}
+
+	@Override
 	public void setType(final String type) {
 		get(SECRET_TYPE).set(type.toString());
 	}
@@ -65,5 +68,5 @@ public class Secret extends KubernetesResource implements ISecret {
 	public String getType() {
 		return asString(SECRET_TYPE);
 	}
-	
+
 }
