@@ -22,6 +22,8 @@ public interface IReplicationController extends IResource, IPodTemplate {
 	 */
 	int getDesiredReplicaCount();
 
+	void setReplicaCount(int repicas);
+
 	/**
 	 * Returns the current number of replicas
 	 *

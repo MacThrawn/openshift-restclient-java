@@ -43,4 +43,9 @@ public class ReplicationController extends PodTemplate implements IReplicationCo
 		return asInt(REPLICATION_CONTROLLER_CURRENT_REPLICA_COUNT);
 	}
 
+	@Override
+	public void setReplicaCount(int replicas) {
+		set(REPLICATION_CONTROLLER_REPLICA_COUNT, replicas);
+	}
+
 }
