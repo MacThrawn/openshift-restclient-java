@@ -3,7 +3,7 @@
  * All rights reserved. This program is made available under the terms of the
  * Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors: Red Hat, Inc.
  ******************************************************************************/
 package com.openshift.internal.restclient;
@@ -28,54 +28,55 @@ import com.openshift.restclient.model.IResource;
 /**
  * Helper class to build the URL connection string in the proper
  * format
- * 
+ *
  * @author Jeff Cantrill
  */
 public class URLBuilder {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(URLBuilder.class);
 	private static final Map<String, String> kindMap = new HashMap<String, String>();
-	
+
 	static {
 		//TODO https://issues.jboss.org/browse/OSJC-218
 		//OpenShift Kinds
 		kindMap.put(ResourceKind.BUILD, "builds");
 		kindMap.put(ResourceKind.BUILD_CONFIG, "buildconfigs");
-		kindMap.put(ResourceKind.DEPLOYMENT_CONFIG,"deploymentconfigs");
+		kindMap.put(ResourceKind.DEPLOYMENT_CONFIG, "deploymentconfigs");
 		kindMap.put(ResourceKind.IMAGE_STREAM, "imagestreams");
-		kindMap.put(ResourceKind.OAUTH_ACCESS_TOKEN,"oauthaccesstokens");
-		kindMap.put(ResourceKind.OAUTH_AUTHORIZE_TOKEN,"oauthauthorizetokens");
+		kindMap.put(ResourceKind.IMAGE_STREAM_TAG, "imagestreamtags");
+		kindMap.put(ResourceKind.OAUTH_ACCESS_TOKEN, "oauthaccesstokens");
+		kindMap.put(ResourceKind.OAUTH_AUTHORIZE_TOKEN, "oauthauthorizetokens");
 		kindMap.put(ResourceKind.OAUTH_CLIENT, "oauthclients");
 		kindMap.put(ResourceKind.OAUTH_CLIENT_AUTHORIZATION, "oauthclientauthorizations");
-		kindMap.put(ResourceKind.POLICY,"policies");
-		kindMap.put(ResourceKind.POLICY_BINDING,"policybindings");
-		kindMap.put(ResourceKind.PVC,"persistentvolumeclaims");
+		kindMap.put(ResourceKind.POLICY, "policies");
+		kindMap.put(ResourceKind.POLICY_BINDING, "policybindings");
+		kindMap.put(ResourceKind.PVC, "persistentvolumeclaims");
 		kindMap.put(ResourceKind.PROJECT, "projects");
 		kindMap.put(ResourceKind.PROJECT_REQUEST, "projectrequests");
 		kindMap.put(ResourceKind.ROLE, "roles");
 		kindMap.put(ResourceKind.ROLE_BINDING, "rolebindings");
-		kindMap.put(ResourceKind.ROUTE,"routes");
+		kindMap.put(ResourceKind.ROUTE, "routes");
 		kindMap.put(ResourceKind.TEMPLATE, "templates");
 		kindMap.put(ResourceKind.USER, "users");
-		
+
 		//Kubernetes Kinds
 		kindMap.put(ResourceKind.EVENT, "events");
-		kindMap.put(ResourceKind.LIMIT_RANGE,"limitranges");
+		kindMap.put(ResourceKind.LIMIT_RANGE, "limitranges");
 		kindMap.put(ResourceKind.POD, "pods");
 		kindMap.put(ResourceKind.REPLICATION_CONTROLLER, "replicationcontrollers");
-		kindMap.put(ResourceKind.RESOURCE_QUOTA, "resourcequotas"); 
-		kindMap.put(ResourceKind.SERVICE, "services"); 
+		kindMap.put(ResourceKind.RESOURCE_QUOTA, "resourcequotas");
+		kindMap.put(ResourceKind.SERVICE, "services");
 		kindMap.put(ResourceKind.SECRET, "secrets");
 		kindMap.put(ResourceKind.SERVICE_ACCOUNT, "serviceaccounts");
 
 		kindMap.put(ResourceKind.TEMPLATE_CONFIG, "templateconfig");//mechanism for processing templates pre v1beta3
 		kindMap.put(ResourceKind.PROCESSED_TEMPLATES, "processedtemplates");//mechanism for processing templates
 	}
-	
-	private String baseUrl;
+
+	private final String baseUrl;
 	private String kind;
 	private String name;
-	private Map<String, String> params = new HashMap<String, String>();
+	private final Map<String, String> params = new HashMap<String, String>();
 	private final Map<String, String> typeMappings;
 
 	private String namespace;
@@ -85,29 +86,31 @@ public class URLBuilder {
 		this(baseUrl, typeMappings);
 		resource(resource);
 	}
-	
+
 	URLBuilder(URL baseUrl, Map<String, String> typeMappings) {
 		this.baseUrl = baseUrl.toString().replaceAll("/*$", "");
 		this.typeMappings = typeMappings;
 	}
-	
-	URLBuilder namespace(String namespace){
-		if(StringUtils.isBlank(namespace)) return this;
-		if(typeMappingIsForV1Beta1()) {
+
+	URLBuilder namespace(String namespace) {
+		if (StringUtils.isBlank(namespace)) {
+			return this;
+		}
+		if (typeMappingIsForV1Beta1()) {
 			addParmeter("namespace", namespace);
-		}else {
+		} else {
 			this.namespace = namespace;
 		}
 		return this;
 	}
-	
+
 	URLBuilder name(String name) {
 		this.name = name;
 		return this;
 	}
 
 	URLBuilder kind(String kind) {
-		if(!kindMap.containsKey(kind)) {
+		if (!kindMap.containsKey(kind)) {
 			throw new IllegalArgumentException(String.format("There is no registered endpoint for kind %s", kind));
 		}
 		this.kind = kind;
@@ -115,7 +118,9 @@ public class URLBuilder {
 	}
 
 	URLBuilder resource(IResource resource) {
-		if (resource == null) return this;
+		if (resource == null) {
+			return this;
+		}
 		this.name = resource.getName();
 		kind(resource.getKind());
 		namespace(resource.getNamespace());
@@ -126,7 +131,6 @@ public class URLBuilder {
 		params.put(key, value);
 		return this;
 	}
-	
 
 	URLBuilder subresource(String value) {
 		this.subResource = value;
@@ -134,18 +138,20 @@ public class URLBuilder {
 	}
 
 	/**
-	 * Builds a URL based on the information provided. Either  a resource or
+	 * Builds a URL based on the information provided. Either a resource or
 	 * a resource kind must be provided
+	 * 
 	 * @return
 	 */
 	URL build() {
 		StringBuilder url = new StringBuilder(baseUrl);
-		if (kind == null)
+		if (kind == null) {
 			throw new RuntimeException(
-					"Unable to build a URL because the ResourceKind is unknown");
-		if(typeMappingIsForV1Beta1()) {
+				"Unable to build a URL because the ResourceKind is unknown");
+		}
+		if (typeMappingIsForV1Beta1()) {
 			buildWithNamespaceAsQueryParam(url);
-		}else {
+		} else {
 			buildWithNamespaceInPath(url);
 		}
 
@@ -156,7 +162,6 @@ public class URLBuilder {
 			throw new RuntimeException(e);
 		}
 	}
-	
 
 	private boolean typeMappingIsForV1Beta1() {
 		String mapping = typeMappings.get(kind);
@@ -166,7 +171,7 @@ public class URLBuilder {
 	private void buildWithNamespaceInPath(StringBuilder url) {
 		url.append("/")
 			.append(typeMappings.get(kind));
-		if(namespace != null && !ResourceKind.PROJECT.equals(kind)) {
+		if (namespace != null && !ResourceKind.PROJECT.equals(kind)) {
 			url.append("/namespaces/")
 				.append(namespace);
 		}
@@ -174,7 +179,7 @@ public class URLBuilder {
 		if (name != null) {
 			url.append("/").append(name);
 		}
-		if(StringUtils.isNotBlank(subResource)) {
+		if (StringUtils.isNotBlank(subResource)) {
 			url.append("/").append(subResource);
 		}
 		url = appendParameters(url);
@@ -200,13 +205,13 @@ public class URLBuilder {
 		if (!params.isEmpty()) {
 			url.append(IHttpClient.QUESTION_MARK);
 			for (Iterator<Entry<String, String>> iterator = params.entrySet()
-					.iterator(); iterator.hasNext();) {
-				Entry<String, String> entry = (Entry<String, String>) iterator
-						.next();
+				.iterator(); iterator.hasNext();) {
+				Entry<String, String> entry = iterator
+					.next();
 				try {
 					url.append(entry.getKey())
-							.append(IHttpClient.EQUALS)
-							.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+						.append(IHttpClient.EQUALS)
+						.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
 				} catch (UnsupportedEncodingException e) {
 					throw new RuntimeException(e);
 				}

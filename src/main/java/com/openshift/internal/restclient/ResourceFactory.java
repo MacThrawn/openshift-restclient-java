@@ -27,6 +27,7 @@ import com.openshift.internal.restclient.model.BuildConfig;
 import com.openshift.internal.restclient.model.Config;
 import com.openshift.internal.restclient.model.DeploymentConfig;
 import com.openshift.internal.restclient.model.ImageStream;
+import com.openshift.internal.restclient.model.ImageStreamTag;
 import com.openshift.internal.restclient.model.KubernetesEvent;
 import com.openshift.internal.restclient.model.KubernetesResource;
 import com.openshift.internal.restclient.model.LimitRange;
@@ -78,6 +79,7 @@ public class ResourceFactory implements IResourceFactory {
 		IMPL_MAP.put(ResourceKind.CONFIG, Config.class);
 		IMPL_MAP.put(ResourceKind.DEPLOYMENT_CONFIG, DeploymentConfig.class);
 		IMPL_MAP.put(ResourceKind.IMAGE_STREAM, ImageStream.class);
+		IMPL_MAP.put(ResourceKind.IMAGE_STREAM_TAG, ImageStreamTag.class);
 		IMPL_MAP.put(ResourceKind.LIST, com.openshift.internal.restclient.model.List.class);
 		IMPL_MAP.put(ResourceKind.OAUTH_ACCESS_TOKEN, OAuthAccessToken.class);
 		IMPL_MAP.put(ResourceKind.OAUTH_AUTHORIZE_TOKEN, OAuthAuthorizeToken.class);
