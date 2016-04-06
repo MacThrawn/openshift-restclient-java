@@ -18,10 +18,18 @@ import java.util.Set;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
+import com.openshift.restclient.model.container.IContainerState;
+
+import com.openshift.internal.restclient.model.container.ContainerState;
+import com.openshift.internal.restclient.model.container.ContainerStateRunning;
+import com.openshift.internal.restclient.model.container.ContainerStateTerminated;
+import com.openshift.internal.restclient.model.container.ContainerStateWaiting;
+import com.openshift.internal.restclient.model.container.ContainerStatus;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.model.IPod;
+import com.openshift.restclient.model.IPodCondition;
 import com.openshift.restclient.model.IPort;
-
+import com.openshift.restclient.model.container.IContainerStatus;
 import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
 
 /**
@@ -34,6 +42,7 @@ public class Pod extends KubernetesResource implements IPod {
 	private static final String POD_STATUS = "status.phase";
 	private static final String POD_CONTAINERS = "spec.containers";
 	private static final String POD_CONDITIONS = "status.conditions";
+	private static final String POD_CONTAINER_STATUSES = "status.containerStatuses";
 
 	public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
 		super(node, client, propertyKeys);
@@ -70,15 +79,104 @@ public class Pod extends KubernetesResource implements IPod {
 
 	@Override
 	public boolean isReady() {
+		IPodCondition condition = getPodConditionReady();
+		if (condition != null) {
+			return condition.getStatus();
+		}
+		return false;
+	}
+
+	@Override
+	public IPodCondition getPodConditionReady() {
+		Collection<IPodCondition> conditions = getPodCondtions();
+		for (IPodCondition condition : conditions) {
+			if ("Ready".equalsIgnoreCase(condition.getType())) {
+				return condition;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public Collection<IPodCondition> getPodCondtions() {
+		Collection<IPodCondition> result = new ArrayList<>();
 		ModelNode conditions = get(POD_CONDITIONS);
 		if (conditions != null && conditions.getType() == ModelType.LIST) {
 			for (ModelNode condition : conditions.asList()) {
-				if ("Ready".equalsIgnoreCase(condition.get("type").asString())) {
-					return Boolean.parseBoolean(condition.get("status").asString().toLowerCase());
+				PodCondition podCondition = new PodCondition(condition.get("type").asString(), condition.get("status").asBoolean());
+				if (condition.get("message").isDefined()) {
+					podCondition.setMessage(condition.get("message").asString());
 				}
+				if (condition.get("reason").isDefined()) {
+					podCondition.setReason(condition.get("reason").asString());
+				}
+				if (condition.get("lastTransitionTime").isDefined()) {
+					podCondition.setLastTransitionTime(parseDate(condition.get("lastTransitionTime").asString()));
+				}
+				result.add(podCondition);
 			}
 		}
-		return false;
+		return result;
+	}
+
+	@Override
+	public Collection<IContainerStatus> getContainerStatuses() {
+		Collection<IContainerStatus> result = new ArrayList<>();
+		ModelNode containerStatuses = get(POD_CONTAINER_STATUSES);
+		if (containerStatuses != null && containerStatuses.getType() == ModelType.LIST) {
+			for (ModelNode containerStatus : containerStatuses.asList()) {
+				ContainerStatus cs = new ContainerStatus(containerStatus.get("name").asString(),
+					containerStatus.get("ready").asBoolean(), containerStatus.get("restartCount").asInt());
+
+				cs.setState(extractContainerState(containerStatus.get("state")));
+				cs.setLastState(extractContainerState(containerStatus.get("lastState")));
+				result.add(cs);
+			}
+		}
+		return result;
+	}
+
+	private IContainerState extractContainerState(ModelNode containerState) {
+		ContainerState state = new ContainerState();
+		if (containerState.hasDefined("running")) {
+			ModelNode runningState = containerState.get("running");
+			ContainerStateRunning running = new ContainerStateRunning();
+			if (runningState.hasDefined("startedAt")) {
+				running.setStartedAt(parseDate(runningState.get("startedAt").asString()));
+			}
+			state.setRunning(running);
+
+		} else if (containerState.hasDefined("waiting")) {
+			ModelNode waitingState = containerState.get("waiting");
+			ContainerStateWaiting waiting = new ContainerStateWaiting();
+			if (waitingState.hasDefined("reason")) {
+				waiting.setReason(waitingState.get("reason").asString());
+			}
+			if (waitingState.hasDefined("message")) {
+				waiting.setMessage(waitingState.get("message").asString());
+			}
+
+			state.setWaiting(waiting);
+		} else if (containerState.hasDefined("terminated")) {
+			ModelNode terminatedState = containerState.get("terminated");
+			ContainerStateTerminated terminated = new ContainerStateTerminated(terminatedState.get("exitCode").asInt());
+
+			if (terminatedState.hasDefined("reason")) {
+				terminated.setReason(terminatedState.get("reason").asString());
+			}
+			if (terminatedState.hasDefined("message")) {
+				terminated.setMessage(terminatedState.get("message").asString());
+			}
+			if (terminatedState.hasDefined("startedAt")) {
+				terminated.setStartedAt(parseDate(terminatedState.get("startedAt").asString()));
+			}
+			if (terminatedState.hasDefined("finishedAt")) {
+				terminated.setFinishedAt(parseDate(terminatedState.get("finishedAt").asString()));
+			}
+
+			state.setTerminated(terminated);
+		}
+		return state;
 	}
 
 	@Override

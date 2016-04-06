@@ -11,6 +11,8 @@ package com.openshift.restclient.model;
 import java.util.Collection;
 import java.util.Set;
 
+import com.openshift.restclient.model.container.IContainerStatus;
+
 /**
  * @author Jeff Cantrill
  */
@@ -18,7 +20,7 @@ public interface IPod extends IResource {
 
 	/**
 	 * Gets the IP of the Pod
-	 * 
+	 *
 	 * @return
 	 */
 	String getIP();
@@ -26,7 +28,7 @@ public interface IPod extends IResource {
 	/**
 	 * Gets the name of the host on which
 	 * the pod is running
-	 * 
+	 *
 	 * @return
 	 */
 	String getHost();
@@ -34,28 +36,49 @@ public interface IPod extends IResource {
 	/**
 	 * Gets the collection of image names
 	 * for the pod containers
-	 * 
+	 *
 	 * @return
 	 */
 	Collection<String> getImages();
 
 	/**
 	 * Gets the status of the pod
-	 * 
+	 *
 	 * @return
 	 */
 	String getStatus();
 
 	/**
 	 * Reads the Ready condition
-	 * 
+	 *
 	 * @return
 	 */
 	boolean isReady();
+
+	/**
+	 * Reads the POD status conditions
+	 *
+	 * @return
+	 */
+	Collection<IPodCondition> getPodCondtions();
+
+	/**
+	 * Find the Ready condition
+	 *
+	 * @return the ready condition or null
+	 */
+	IPodCondition getPodConditionReady();
 
 	/**
 	 * Retrieve the set of ports that the
 	 * containers are using
 	 */
 	Set<IPort> getContainerPorts();
+
+	/**
+	 * Read the container statuses
+	 * 
+	 * @return
+	 */
+	Collection<IContainerStatus> getContainerStatuses();
 }

@@ -37,6 +37,7 @@ import static com.openshift.internal.restclient.capability.CapabilityInitializer
  */
 public class KubernetesResource implements IResource, ResourcePropertyKeys {
 
+	public static final String RFC_3339_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private ModelNode node;
 	private final IClient client;
 	private final Map<Class<? extends ICapability>, ICapability> capabilities = new HashMap<Class<? extends ICapability>, ICapability>();
@@ -344,9 +345,13 @@ public class KubernetesResource implements IResource, ResourcePropertyKeys {
 
 	@Override
 	public Date getCreated() {
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		return parseDate(getCreationTimeStamp());
+	}
+
+	protected static Date parseDate(String dateTime) {
+		SimpleDateFormat df = new SimpleDateFormat(RFC_3339_DATE_TIME);
 		try {
-			return df.parse(getCreationTimeStamp());
+			return df.parse(dateTime);
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
