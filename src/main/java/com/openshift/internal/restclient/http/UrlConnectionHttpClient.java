@@ -11,7 +11,6 @@
 package com.openshift.internal.restclient.http;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -48,6 +47,7 @@ import com.openshift.restclient.ISSLCertificateCallback;
 import com.openshift.restclient.authorization.IAuthorizationStrategy;
 import com.openshift.restclient.authorization.URLConnectionRequest;
 import com.openshift.restclient.http.IHttpClient;
+import com.openshift.restclient.http.IHttpConstants;
 import com.openshift.restclient.model.IResource;
 import com.openshift.restclient.utils.SSLUtils;
 
@@ -69,18 +69,74 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	private final String excludedSSLCipherRegex;
 	private IAuthorizationStrategy authStrategy;
 
+	private TrustManagerFactory trustManagerFactory;
+	private NoSuchAlgorithmException trustManagerFactoryException;
+
 	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType, String version) {
 		this(userAgent, acceptedMediaType, version, null, null, null);
 	}
 
 	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType,
 		String version, ISSLCertificateCallback callback, Integer configTimeout, String excludedSSLCipherRegex) {
+		this(userAgent, acceptedMediaType, version, callback, configTimeout, excludedSSLCipherRegex, null, null);
+	}
+
+	public UrlConnectionHttpClient(String userAgent, String acceptedMediaType,
+		String version, ISSLCertificateCallback callback, Integer configTimeout, String excludedSSLCipherRegex,
+		String alias, X509Certificate cert) {
 		this.userAgent = userAgent;
 		this.acceptedMediaType = acceptedMediaType;
 		this.acceptedVersion = version;
 		this.sslAuthorizationCallback = callback;
 		this.configTimeout = configTimeout;
 		this.excludedSSLCipherRegex = excludedSSLCipherRegex;
+		this.initTrustManagerFactory(alias, cert);
+	}
+
+	private void initTrustManagerFactory(String alias, X509Certificate cert) {
+		try {
+			trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			if (alias != null && cert != null) {
+				KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+				// need this load to initialize the key store, and allow for the subsequent set certificate entry
+				ks.load(null, null);
+				cert.checkValidity();
+				ks.setCertificateEntry(alias, cert);
+				// testing has proven that you can only call init() once for a TrustManagerFactory wrt loading certs
+				// from the KeyStore ... subsequent KeyStore.setCertificateEntry / TrustManagerFactory.init calls are
+				// ignored.
+				// So if a specific cert is required to validate this connection's communication with the server, add it up front
+				// in the ctor.
+				trustManagerFactory.init(ks);
+			} else {
+				trustManagerFactory.init((KeyStore) null);
+			}
+
+		} catch (NoSuchAlgorithmException e) {
+			LOGGER.warn("Could not get trust manager factory.", e);
+			trustManagerFactoryException = e;
+		} catch (KeyStoreException e) {
+			LOGGER.warn("Count not get key store.", e);
+		} catch (CertificateException e) {
+			LOGGER.warn("An invalid certificate was provided to this connection.", e);
+		} catch (IOException e) {
+			LOGGER.warn("An IO exception occurred while setting up a cert with the trust store.", e);
+		}
+	}
+
+	// not part of IHttpClient currently, only put in place for test verification
+	public X509Certificate[] getTrustedCertificates() throws KeyStoreException, NoSuchAlgorithmException {
+		return getCurrentTrustManager().getAcceptedIssuers();
+	}
+
+	@Override
+	public void setSSLCertificateCallback(ISSLCertificateCallback callback) {
+		this.sslAuthorizationCallback = callback;
+	}
+
+	@Override
+	public ISSLCertificateCallback getSSLCertificateCallback() {
+		return sslAuthorizationCallback;
 	}
 
 	@Override
@@ -138,6 +194,9 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		try {
 			connection = createConnection(
 				url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
+			if (httpMethod == HttpMethod.POST || httpMethod == HttpMethod.PUT) {
+				setContentTypeHeader(acceptedVersion, acceptedMediaType, connection);
+			}
 			// PATCH not yet supported by JVM
 			setRequestMethod(httpMethod, connection);
 			if (!parameters.isEmpty()) {
@@ -161,11 +220,19 @@ public class UrlConnectionHttpClient implements IHttpClient {
 		try {
 			connection = createConnection(
 				url, userAgent, acceptedVersion, acceptedMediaType, sslAuthorizationCallback, timeout);
+			if (httpMethod == HttpMethod.POST || httpMethod == HttpMethod.PUT) {
+				setContentTypeHeader(acceptedVersion, acceptedMediaType, connection);
+			}
 			// PATCH not yet supported by JVM
 			setRequestMethod(httpMethod, connection);
-			LOGGER.debug(String.format("Request Properties: %s", connection.getRequestProperties()));
-			LOGGER.debug(String.format("Request Method: %s", connection.getRequestMethod()));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(String.format("Request Properties: %s", connection.getRequestProperties()));
+				LOGGER.debug(String.format("Request Method: %s", connection.getRequestMethod()));
+			}
 			if (resource != null) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug(resource.toJson(false));
+				}
 				connection.setDoOutput(true);
 				PrintWriter writer = new PrintWriter(connection.getOutputStream());
 				writer.write(resource.toString());
@@ -201,13 +268,13 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			int responseCode = connection.getResponseCode();
 			String errorMessage = createErrorMessage(ioe, connection);
 			switch (responseCode) {
-				case STATUS_INTERNAL_SERVER_ERROR:
+				case IHttpConstants.STATUS_INTERNAL_SERVER_ERROR:
 					return new InternalServerErrorException(errorMessage, ioe);
-				case STATUS_BAD_REQUEST:
+				case IHttpConstants.STATUS_BAD_REQUEST:
 					return new BadRequestException(errorMessage, ioe);
-				case STATUS_UNAUTHORIZED:
+				case IHttpConstants.STATUS_UNAUTHORIZED:
 					return new UnauthorizedException(errorMessage, ioe);
-				case STATUS_NOT_FOUND:
+				case IHttpConstants.STATUS_NOT_FOUND:
 					return new NotFoundException(errorMessage, ioe);
 				default:
 					return new HttpClientException(errorMessage, ioe, responseCode);
@@ -220,12 +287,9 @@ public class UrlConnectionHttpClient implements IHttpClient {
 	}
 
 	protected String createErrorMessage(IOException ioe, HttpURLConnection connection) throws IOException {
-		InputStream error = connection.getErrorStream();
-		if (error != null) {
-			String errorMessage = IOUtils.toString(connection.getErrorStream());
-			if (!StringUtils.isEmpty(errorMessage)) {
-				return errorMessage;
-			}
+		String errorMessage = IOUtils.toString(connection.getErrorStream());
+		if (!StringUtils.isEmpty(errorMessage)) {
+			return errorMessage;
 		}
 		StringBuilder builder = new StringBuilder("Connection to ")
 			.append(connection.getURL());
@@ -266,23 +330,38 @@ public class UrlConnectionHttpClient implements IHttpClient {
 
 	private void setUserAgent(String userAgent, HttpURLConnection connection) {
 		if (!StringUtils.isEmpty(userAgent)) {
-			connection.setRequestProperty(PROPERTY_USER_AGENT, userAgent);
+			connection.setRequestProperty(IHttpConstants.PROPERTY_USER_AGENT, userAgent);
 		}
 	}
 
 	private void setAcceptHeader(String acceptedVersion, String acceptedMediaType, HttpURLConnection connection) {
 		if (StringUtils.isEmpty(acceptedMediaType)) {
 			throw new HttpClientException(MessageFormat.format(
-				"Accepted media type (ex. {0}) is not defined", MEDIATYPE_APPLICATION_JSON));
+				"Accepted media type (ex. {0}) is not defined", IHttpConstants.MEDIATYPE_APPLICATION_JSON));
 		}
 
 		StringBuilder builder = new StringBuilder(acceptedMediaType);
 		if (acceptedVersion != null) {
-			builder.append(SEMICOLON).append(SPACE)
-				.append(VERSION).append(EQUALS).append(acceptedVersion);
+			builder.append(IHttpConstants.SEMICOLON).append(IHttpConstants.SPACE)
+				.append(IHttpConstants.VERSION).append(IHttpConstants.EQUALS).append(acceptedVersion);
 		}
 
-		connection.setRequestProperty(PROPERTY_ACCEPT, builder.toString());
+		connection.setRequestProperty(IHttpConstants.PROPERTY_ACCEPT, builder.toString());
+	}
+
+	private void setContentTypeHeader(String version, String mediaType, HttpURLConnection connection) {
+		if (StringUtils.isEmpty(mediaType)) {
+			throw new HttpClientException(MessageFormat.format(
+				"Accepted media type (ex. {0}) is not defined", IHttpConstants.MEDIATYPE_APPLICATION_JSON));
+		}
+
+		StringBuilder builder = new StringBuilder(mediaType);
+		if (acceptedVersion != null) {
+			builder.append(IHttpConstants.SEMICOLON).append(IHttpConstants.SPACE)
+				.append(IHttpConstants.VERSION).append(IHttpConstants.EQUALS).append(version);
+		}
+
+		connection.setRequestProperty(IHttpConstants.PROPERTY_CONTENT_TYPE, builder.toString());
 	}
 
 	protected final void setAuthorization(HttpURLConnection connection) {
@@ -385,15 +464,15 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			|| StringUtils.isEmpty(mediaType.getType())) {
 			throw new HttpClientException(
 				MessageFormat.format("Request media type (ex. {0}) is not defined",
-					MEDIATYPE_APPLICATION_FORMURLENCODED));
+					IHttpConstants.MEDIATYPE_APPLICATION_FORMURLENCODED));
 		}
-		connection.setRequestProperty(PROPERTY_CONTENT_TYPE, mediaType.getType());
+		connection.setRequestProperty(IHttpConstants.PROPERTY_CONTENT_TYPE, mediaType.getType());
 	}
 
 	private X509TrustManager getCurrentTrustManager() throws NoSuchAlgorithmException, KeyStoreException {
-		TrustManagerFactory trustManagerFactory =
-			TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		trustManagerFactory.init((KeyStore) null);
+		if (trustManagerFactoryException != null) {
+			throw trustManagerFactoryException;
+		}
 
 		X509TrustManager x509TrustManager = null;
 		for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
@@ -403,6 +482,7 @@ public class UrlConnectionHttpClient implements IHttpClient {
 			}
 		}
 		return x509TrustManager;
+
 	}
 
 	@Override
