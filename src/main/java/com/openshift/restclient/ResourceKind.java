@@ -63,6 +63,7 @@ public final class ResourceKind {
 	@Deprecated
 	public static final String TEMPLATE_CONFIG = "TemplateConfig";//mechanism for processing templates pre v1beta3
 	public static final String PROCESSED_TEMPLATES = "ProcessedTemplates";//mechanism for processing templates
+	public static final String JOB = "Job";
 
 	/**
 	 * The default if we haven't implemented the kind yet

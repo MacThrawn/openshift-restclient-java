@@ -71,6 +71,7 @@ public class URLBuilder {
 
 		kindMap.put(ResourceKind.TEMPLATE_CONFIG, "templateconfig");//mechanism for processing templates pre v1beta3
 		kindMap.put(ResourceKind.PROCESSED_TEMPLATES, "processedtemplates");//mechanism for processing templates
+		kindMap.put(ResourceKind.JOB, "jobs");
 	}
 
 	private final String baseUrl;
