@@ -80,7 +80,7 @@ public interface IClient extends ICapable, IAuthorizationClient{
 	 * @param namespace
 	 * @return
 	 */
-	<T extends IResource> T create(T resource, String namespace);
+	<T extends IResource> T create(IResource payload, String namespace);
 	
 	/**
 	 * Creates the given resource in the given namespace using the subresource
@@ -92,6 +92,15 @@ public interface IClient extends ICapable, IAuthorizationClient{
 	 * @return
 	 */
 	<T extends IResource> T create(String kind, String namespace, String name, String subresource, IResource payload);
+
+	/**
+     * Creates the given resource in the given namespace using the subresource
+     * @param kind
+     * @param namespace
+     * @param payload
+     * @return
+     */
+    <T extends IResource> T create(String kind, String namespace, IResource payload);
 	
 	/**
 	 * Creates a list of resources in the given namespace

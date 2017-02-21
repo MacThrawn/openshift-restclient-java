@@ -166,6 +166,9 @@ public class URLBuilder {
 
 	private boolean typeMappingIsForV1Beta1() {
 		String mapping = typeMappings.get(kind);
+		if (mapping.equals("apis/extensions/v1beta1")) {
+		    return false;
+		}
 		return mapping.contains("v1beta1");
 	}
 

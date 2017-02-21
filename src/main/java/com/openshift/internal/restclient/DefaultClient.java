@@ -65,6 +65,7 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 	private boolean capabilitiesInitialized = false;
 
 	private static final String API_ENDPOINT = "api";
+	private static final String APIS_ENDPOINT = "apis";
 	private static final String OS_API_LEGACY_ENDPOINT = "osapi";
 	private static final String OS_API_ENDPOINT = "oapi";
 
@@ -179,11 +180,11 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 	}
 
 	@Override
-	public <T extends IResource> T create(T resource, String namespace) {
+	public <T extends IResource> T create(IResource resource, String namespace) {
 		return createVersion(resource, namespace, null);
 	}
 
-	private <T extends IResource> T createVersion(T resource, String namespace, String version) {
+	private <T extends IResource> T createVersion(IResource resource, String namespace, String version) {
 		if (ResourceKind.LIST.equals(resource.getKind())) {
 			throw new UnsupportedOperationException("Generic create operation not supported for resource type 'List'");
 		}
@@ -202,6 +203,27 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 			throw new OpenShiftException(e, "Socket timeout creating resource %s", resource.getName());
 		}
 	}
+
+    @Override
+    public <T extends IResource> T create(String kind, String namespace, IResource payload) {
+        if (ResourceKind.LIST.equals(kind)) {
+            throw new UnsupportedOperationException("Generic create operation not supported for resource type 'List'");
+        }
+        try {
+            namespace = ResourceKind.PROJECT.equals(kind) ? "" : namespace;
+            final URL endpoint = new URLBuilder(this.baseUrl, getTypeMappings())
+                .kind(kind)
+                .namespace(namespace)
+                .build();
+            String response = client.post(endpoint, IHttpClient.DEFAULT_READ_TIMEOUT, payload);
+            LOGGER.debug(response);
+            return factory.create(response);
+        } catch (HttpClientException e) {
+            throw createOpenShiftException(String.format("Could not create %s namespace %s", kind, namespace, e.getMessage()), e);
+        } catch (SocketTimeoutException e) {
+            throw new OpenShiftException(e, "Socket timeout creating resource");
+        }
+    }
 
 	@Override
 	public <T extends IResource> T create(String kind, String namespace, String name, String subresource, IResource payload) {
@@ -391,6 +413,7 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 			//OpenShift endpoints
 			final String version = StringUtils.defaultIfEmpty(apiVersion, getOpenShiftAPIVersion());
 			final String osEndpoint = String.format("%s/%s", OpenShiftAPIVersion.v1beta3.toString().equals(version) ? OS_API_LEGACY_ENDPOINT : OS_API_ENDPOINT, version);
+			final String osBetaExtensionsEndpoint = String.format("%s/%s", APIS_ENDPOINT, "extensions/v1beta1");
 			typeMappings.put(ResourceKind.BUILD, osEndpoint);
 			typeMappings.put(ResourceKind.BUILD_CONFIG, osEndpoint);
 			typeMappings.put(ResourceKind.DEPLOYMENT_CONFIG, osEndpoint);
@@ -409,6 +432,7 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 			typeMappings.put(ResourceKind.ROUTE, osEndpoint);
 			typeMappings.put(ResourceKind.TEMPLATE, osEndpoint);
 			typeMappings.put(ResourceKind.USER, osEndpoint);
+			typeMappings.put(ResourceKind.JOB, osBetaExtensionsEndpoint);
 			//not real kinds
 			typeMappings.put(ResourceKind.TEMPLATE_CONFIG, osEndpoint);
 			typeMappings.put(ResourceKind.PROCESSED_TEMPLATES, osEndpoint);
@@ -533,5 +557,6 @@ public class DefaultClient implements IClient, IHttpStatusCodes {
 		}
 		return true;
 	}
+
 
 }
