@@ -14,7 +14,6 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
 
-import com.openshift.internal.restclient.OpenShiftAPIVersion;
 import com.openshift.internal.restclient.model.KubernetesResource;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.ResourceKind;
@@ -120,6 +119,11 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
 			
 			return template.isMatching(text);
 		}
+
+        @Override
+        public void addChildObjectLabels(String key, String value) {
+            // NOP
+        }
 		
 	}
 }

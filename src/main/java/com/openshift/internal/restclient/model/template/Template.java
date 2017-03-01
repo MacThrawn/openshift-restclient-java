@@ -34,6 +34,7 @@ public class Template extends KubernetesResource implements ITemplate{
 	
 	private static final String TEMPLATE_PARAMETERS = "parameters";
 	private static final String TEMPLATE_OBJECT_LABELS = "labels";
+    private static final String CHILD_OBJECT_TEMPLATE_LABELS = "spec.template.metadata.labels";
 
 
 	public Template(ModelNode node, IClient client, Map<String, String []> overrideProperties) {
@@ -117,5 +118,13 @@ public class Template extends KubernetesResource implements ITemplate{
 			}
 		}, false);
 	}
+
+    @Override
+    public void addChildObjectLabels(String key, String value) {
+        for (ModelNode node : get(OBJECTS).asList()) {
+            ModelNode labels = node.get(getPath(CHILD_OBJECT_TEMPLATE_LABELS));
+            labels.get(key).set(value);
+        }
+    }
 
 }

@@ -58,6 +58,8 @@ public interface ITemplate extends IResource {
 	 */
 	void addObjectLabel(String key, String value);
 
+	void addChildObjectLabels(String key, String value);
+
 	/**
 	 * Returns <code>true</code> if the given resource contains the given text
 	 * in name or tags.
@@ -66,5 +68,5 @@ public interface ITemplate extends IResource {
 	 * @param template
 	 * @return
 	 */
-	public boolean isMatching(final String filterText);
+	boolean isMatching(final String filterText);
 }
