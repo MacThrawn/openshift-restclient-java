@@ -12,32 +12,42 @@ import com.openshift.restclient.IClient;
 
 public class Job extends KubernetesResource {
 
-	public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
+    public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
 
-	private static final String IMAGE = "image";
+    private static final String IMAGE = "image";
+    private static final String NAME = "name";
 
-	public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
-		super(node, client, overrideProperties);
-	}
+    public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
+        super(node, client, overrideProperties);
+    }
 
-	public Collection<String> getImages() {
-		ModelNode node = get(JOB_TEMPLATE_CONTAINERS);
-		if (node.getType() != ModelType.LIST) {
-			return new ArrayList<String>();
-		}
-		Collection<String> list = new ArrayList<String>();
-		for (ModelNode entry : node.asList()) {
-			list.add(entry.get(IMAGE).asString());
-		}
-		return list;
-	}
+    public Collection<String> getImages() {
+        ModelNode node = get(JOB_TEMPLATE_CONTAINERS);
+        if (node.getType() != ModelType.LIST) {
+            return new ArrayList<String>();
+        }
+        Collection<String> list = new ArrayList<String>();
+        for (ModelNode entry : node.asList()) {
+            list.add(entry.get(IMAGE).asString());
+        }
+        return list;
+    }
 
-	public List<ModelNode> getContainers() {
-		ModelNode node = get(JOB_TEMPLATE_CONTAINERS);
-		if (node.getType() != ModelType.LIST) {
-			return new ArrayList<ModelNode>();
-		}
-		return node.asList();
-	}
+    public List<ModelNode> getContainers() {
+        ModelNode node = get(JOB_TEMPLATE_CONTAINERS);
+        if (node.getType() != ModelType.LIST) {
+            return new ArrayList<ModelNode>();
+        }
+        return node.asList();
+    }
+
+    public void setImage(String containerName, String imageName) {
+        for (ModelNode node : getContainers()) {
+            if (node.get(NAME).asString().equals(containerName)) {
+                node.set(IMAGE, imageName);
+            }
+        }
+
+    }
 
 }
