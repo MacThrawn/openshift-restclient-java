@@ -9,16 +9,23 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
 import com.openshift.restclient.IClient;
+import com.openshift.restclient.model.IJob;
 
-public class Job extends KubernetesResource {
+public class Job extends KubernetesResource implements IJob {
 
     public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
-
+    private static final String JOB_TEMPLATE_LABELS = "spec.template.metadata.labels";
     private static final String IMAGE = "image";
     private static final String NAME = "name";
 
     public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
         super(node, client, overrideProperties);
+    }
+
+    @Override
+    public void addTemplateLabel(String key, String value) {
+        ModelNode labels = get(JOB_TEMPLATE_LABELS);
+        labels.get(key).set(value);
     }
 
     public Collection<String> getImages() {
