@@ -7,6 +7,7 @@ import java.util.Map;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
+import com.openshift.internal.restclient.model.job.JobStatus;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.model.IJob;
 
@@ -14,6 +15,7 @@ public class Job extends KubernetesResource implements IJob {
 
     public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
     private static final String IMAGE = "image";
+    private static final String STATUS = "status";
 
     public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
         super(node, client, overrideProperties);
@@ -30,5 +32,16 @@ public class Job extends KubernetesResource implements IJob {
         }
         return list;
     }
+
+    @Override
+    public JobStatus getStatus() {
+        ModelNode node = get(STATUS);
+        JobStatus status = new JobStatus();
+        status.setStartTime(node.get("startTime").asString());
+        status.setStatus(node.get("active").asInt() == 1 ? "Running": "Completed");
+        return status;
+    }
+
+    
 
 }
