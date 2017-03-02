@@ -7,7 +7,6 @@ import java.util.Map;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
-import com.openshift.internal.restclient.model.job.JobStatus;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.model.IJob;
 
@@ -34,12 +33,8 @@ public class Job extends KubernetesResource implements IJob {
     }
 
     @Override
-    public JobStatus getStatus() {
-        ModelNode node = get(STATUS);
-        JobStatus status = new JobStatus();
-        status.setStartTime(node.get("startTime").asString());
-        status.setStatus(node.get("active").asInt() == 1 ? "Running": "Completed");
-        return status;
+    public String getStatus() {
+        return get(STATUS).toJSONString(false);
     }
 
     

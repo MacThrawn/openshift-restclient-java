@@ -1,9 +1,26 @@
 package com.openshift.internal.restclient.model.job;
 
+import java.util.List;
+
+/**
+ * Model of the kubernetes Job status.
+ * 
+ * @author Brian Singer
+ */
 public class JobStatus {
 
-    String startTime;
-    String status;
+    private List<State> conditions;
+    private String startTime;
+    private String completionTime;
+    private int succeeded;
+
+    public List<State> getConditions() {
+        return conditions;
+    }
+
+    public void setConditions(List<State> conditions) {
+        this.conditions = conditions;
+    }
 
     public String getStartTime() {
         return startTime;
@@ -13,11 +30,19 @@ public class JobStatus {
         this.startTime = startTime;
     }
 
-    public String getStatus() {
-        return status;
+    public String getCompletionTime() {
+        return completionTime;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setCompletionTime(String completionTime) {
+        this.completionTime = completionTime;
+    }
+
+    public int getSucceeded() {
+        return succeeded;
+    }
+
+    public void setSucceeded(int succeeded) {
+        this.succeeded = succeeded;
     }
 }

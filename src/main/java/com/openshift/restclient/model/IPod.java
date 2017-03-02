@@ -9,6 +9,7 @@
 package com.openshift.restclient.model;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import com.openshift.restclient.model.container.IContainerStatus;
@@ -49,6 +50,11 @@ public interface IPod extends IResource {
 	String getStatus();
 
 	/**
+	 * @return a list of JSON strings containing the pod states
+	 */
+	List<String> getPodContainerStates();
+
+	/**
 	 * Reads the Ready condition
 	 *
 	 * @return
@@ -81,4 +87,6 @@ public interface IPod extends IResource {
 	 * @return
 	 */
 	Collection<IContainerStatus> getContainerStatuses();
+
+	boolean isChopsueyJob();
 }

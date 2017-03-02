@@ -8,6 +8,9 @@
  ******************************************************************************/
 package com.openshift.internal.restclient.model;
 
+import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
+
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,8 +21,6 @@ import java.util.Set;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
-import com.openshift.restclient.model.container.IContainerState;
-
 import com.openshift.internal.restclient.model.container.ContainerState;
 import com.openshift.internal.restclient.model.container.ContainerStateRunning;
 import com.openshift.internal.restclient.model.container.ContainerStateTerminated;
@@ -29,8 +30,8 @@ import com.openshift.restclient.IClient;
 import com.openshift.restclient.model.IPod;
 import com.openshift.restclient.model.IPodCondition;
 import com.openshift.restclient.model.IPort;
+import com.openshift.restclient.model.container.IContainerState;
 import com.openshift.restclient.model.container.IContainerStatus;
-import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
 
 /**
  * @author Jeff Cantrill
@@ -43,6 +44,9 @@ public class Pod extends KubernetesResource implements IPod {
 	private static final String POD_CONTAINERS = "spec.containers";
 	private static final String POD_CONDITIONS = "status.conditions";
 	private static final String POD_CONTAINER_STATUSES = "status.containerStatuses";
+	private static final String POD_LABELS = "metadata.labels";
+	private static final String POD_TYPE_LABEL = "cs-type";
+	private static final String JOB = "job";
 
 	public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
 		super(node, client, propertyKeys);
@@ -195,5 +199,27 @@ public class Pod extends KubernetesResource implements IPod {
 		}
 		return Collections.unmodifiableSet(ports);
 	}
+
+    @Override
+    public boolean isChopsueyJob() {
+        ModelNode appLabel = get(POD_LABELS).get(POD_TYPE_LABEL);
+        if (appLabel == null) {
+            return false;
+        }
+        if (appLabel.asString().equals(JOB)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public List<String> getPodContainerStates() {
+        List<ModelNode> statuses = get(POD_CONTAINER_STATUSES).asList();
+        List<String> states = new ArrayList<>();
+        for (ModelNode status : statuses) {
+            states.add(status.toJSONString(false));
+        }
+        return states;
+    }
 
 }
