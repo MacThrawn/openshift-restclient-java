@@ -10,11 +10,11 @@ package com.openshift.internal.restclient.model;
 
 import static com.openshift.internal.restclient.capability.CapabilityInitializer.initializeCapabilities;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,8 +45,6 @@ public class Pod extends KubernetesResource implements IPod {
 	private static final String POD_CONDITIONS = "status.conditions";
 	private static final String POD_CONTAINER_STATUSES = "status.containerStatuses";
 	private static final String POD_LABELS = "metadata.labels";
-	private static final String POD_TYPE_LABEL = "cs-type";
-	private static final String JOB = "job";
 
 	public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
 		super(node, client, propertyKeys);
@@ -201,15 +199,8 @@ public class Pod extends KubernetesResource implements IPod {
 	}
 
     @Override
-    public boolean isChopsueyJob() {
-        ModelNode appLabel = get(POD_LABELS).get(POD_TYPE_LABEL);
-        if (appLabel == null) {
-            return false;
-        }
-        if (appLabel.asString().equals(JOB)) {
-            return true;
-        }
-        return false;
+    public String getLabel(String key) {
+        return get(POD_LABELS).get(key).asString();
     }
 
     @Override

@@ -88,5 +88,5 @@ public interface IPod extends IResource {
 	 */
 	Collection<IContainerStatus> getContainerStatuses();
 
-	boolean isChopsueyJob();
+	String getLabel(String key);
 }
