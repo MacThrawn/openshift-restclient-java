@@ -124,6 +124,11 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
         public void addChildObjectLabels(String key, String value) {
             // NOP
         }
+
+        @Override
+        public void replaceContainerField(String source, String destination) {
+            // NOP
+        }
 		
 	}
 }

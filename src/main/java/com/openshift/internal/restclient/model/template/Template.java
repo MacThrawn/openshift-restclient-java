@@ -35,6 +35,11 @@ public class Template extends KubernetesResource implements ITemplate{
 	private static final String TEMPLATE_PARAMETERS = "parameters";
 	private static final String TEMPLATE_OBJECT_LABELS = "labels";
     private static final String CHILD_OBJECT_TEMPLATE_LABELS = "spec.template.metadata.labels";
+    public static final String JOB_IMAGE = "image";
+    public static final String SOURCE_JOB_IMAGE = "sourceImage";
+    private static final String SPEC = "spec";
+    private static final String TEMPLATE = "template";
+    private static final String CONTAINERS = "containers";
 
 
 	public Template(ModelNode node, IClient client, Map<String, String []> overrideProperties) {
@@ -124,6 +129,20 @@ public class Template extends KubernetesResource implements ITemplate{
         for (ModelNode node : get(OBJECTS).asList()) {
             ModelNode labels = node.get(getPath(CHILD_OBJECT_TEMPLATE_LABELS));
             labels.get(key).set(value);
+        }
+    }
+
+    @Override
+    public void replaceContainerField(String source, String destination) {
+        Collection<ModelNode> objectNodes = get(OBJECTS).asList();
+        IResourceFactory factory = getClient().getResourceFactory();
+        if(factory != null){
+            for (ModelNode node : objectNodes) {
+                 for (ModelNode container : node.get(SPEC).get(TEMPLATE).get(SPEC).get(CONTAINERS).asList()) {
+                    container.set(destination, container.get(source).asString());
+                }
+               
+            }
         }
     }
 
