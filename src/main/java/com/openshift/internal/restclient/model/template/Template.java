@@ -139,7 +139,8 @@ public class Template extends KubernetesResource implements ITemplate{
         if(factory != null){
             for (ModelNode node : objectNodes) {
                  for (ModelNode container : node.get(SPEC).get(TEMPLATE).get(SPEC).get(CONTAINERS).asList()) {
-                    container.set(destination, container.get(source).asString());
+                    ModelNode imageNode = container.get(destination);
+                    imageNode.set(container.get(source).asString());
                 }
                
             }
