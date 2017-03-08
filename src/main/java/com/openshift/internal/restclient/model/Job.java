@@ -14,7 +14,7 @@ public class Job extends KubernetesResource implements IJob {
 
     public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
     private static final String IMAGE = "image";
-    private static final String SOURCE_IMAGE = "sourceImage";
+    private static final String ORIGIN_IMAGE = "originImage";
     private static final String STATUS = "status";
 
     public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
@@ -34,14 +34,14 @@ public class Job extends KubernetesResource implements IJob {
     }
 
     @Override
-    public Collection<String> getSourceImages() {
+    public Collection<String> getOriginImages() {
         ModelNode node = get(JOB_TEMPLATE_CONTAINERS);
         if (node.getType() != ModelType.LIST) {
             return new ArrayList<String>();
         }
         Collection<String> list = new ArrayList<String>();
         for (ModelNode entry : node.asList()) {
-            list.add(entry.get(SOURCE_IMAGE).asString());
+            list.add(entry.get(ORIGIN_IMAGE).asString());
         }
         return list;
     }

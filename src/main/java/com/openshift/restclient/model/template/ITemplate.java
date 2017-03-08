@@ -70,11 +70,4 @@ public interface ITemplate extends IResource {
 	 */
 	boolean isMatching(final String filterText);
 
-	/**
-	 * Replace the template job spec template -> containers field destination with the field source.
-	 * 
-	 * @param source the container source field
-	 * @param destination the container destination field
-	 */
-	void replaceContainerField(final String source, final String destination);
 }

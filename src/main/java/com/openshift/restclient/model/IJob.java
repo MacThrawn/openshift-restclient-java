@@ -7,11 +7,11 @@ public interface IJob extends IResource {
     Collection<String> getImages();
 
     /**
-     * Get the transient template values of the Job container souce images.
+     * Get the transient template values of the Job container origin images.
      * 
-     * @return the container parameter 'sourceImage' for all containers in the job
+     * @return the container parameter 'originImage' for all containers in the job
      */
-    Collection<String> getSourceImages();
+    Collection<String> getOriginImages();
     /**
      * @return the JSON representing the job status
      */
