@@ -344,9 +344,11 @@ public class BuildConfig extends KubernetesResource implements IBuildConfig {
 
         if (result != null) {
             String name = asString(from + ".name");
-            ImageStreamReferenceTag isrt = new ImageStreamReferenceTag(name.substring(0, name.lastIndexOf(':')), asString(from + ".namespace"), name
-                .substring(name.lastIndexOf(':') + 1));
-            result.setFrom(isrt);
+            if (name != null && name.length() > 0) {
+                ImageStreamReferenceTag isrt = new ImageStreamReferenceTag(name.substring(0, name.lastIndexOf(':')), asString(from + ".namespace"), name
+                    .substring(name.lastIndexOf(':') + 1));
+                result.setFrom(isrt);
+            }
         }
         return (T) result;
     }
