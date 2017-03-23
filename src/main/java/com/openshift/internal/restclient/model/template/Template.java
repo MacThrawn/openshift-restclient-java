@@ -17,10 +17,13 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
 
+import com.openshift.internal.restclient.model.Job;
 import com.openshift.internal.restclient.model.KubernetesResource;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.IResourceFactory;
+import com.openshift.restclient.OpenShiftException;
 import com.openshift.restclient.capability.CapabilityVisitor;
 import com.openshift.restclient.capability.resources.ITags;
 import com.openshift.restclient.model.IResource;
@@ -30,7 +33,7 @@ import com.openshift.restclient.model.template.ITemplate;
 /**
  * @author Jeff Cantrill
  */
-public class Template extends KubernetesResource implements ITemplate{
+public class Template extends KubernetesResource implements ITemplate {
 	
 	private static final String TEMPLATE_PARAMETERS = "parameters";
 	private static final String TEMPLATE_OBJECT_LABELS = "labels";
@@ -125,6 +128,16 @@ public class Template extends KubernetesResource implements ITemplate{
             ModelNode labels = node.get(getPath(CHILD_OBJECT_TEMPLATE_LABELS));
             labels.get(key).set(value);
         }
+    }
+
+    @Override
+    public void setFirstJobContainerImage(String image) {
+        ModelNode node = get(OBJECTS).asList().iterator().next();
+        ModelNode containerNode = get(node, Job.JOB_TEMPLATE_CONTAINERS);
+        if (containerNode.getType() != ModelType.LIST) {
+            throw new OpenShiftException("Failed to set Job Container image.");
+        }
+        set(containerNode.asList().iterator().next(), Job.IMAGE, image);
     }
 
 }

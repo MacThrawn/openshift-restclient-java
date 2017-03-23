@@ -70,4 +70,6 @@ public interface ITemplate extends IResource {
 	 */
 	boolean isMatching(final String filterText);
 
+	void setFirstJobContainerImage(final String image);
+
 }

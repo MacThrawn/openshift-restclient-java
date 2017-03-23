@@ -13,7 +13,7 @@ import com.openshift.restclient.model.IJob;
 public class Job extends KubernetesResource implements IJob {
 
     public static final String JOB_TEMPLATE_CONTAINERS = "spec.template.spec.containers";
-    private static final String IMAGE = "image";
+    public static final String IMAGE = "image";
     private static final String ORIGIN_IMAGE = "originImage";
     private static final String STATUS = "status";
     private static final String MAX_RESTART_COUNT = "spec.template.spec.maxRestartCount";

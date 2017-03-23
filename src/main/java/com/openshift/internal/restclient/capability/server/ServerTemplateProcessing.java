@@ -125,5 +125,10 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
             // NOP
         }
 
+        @Override
+        public void setFirstJobContainerImage(String image) {
+            // NOP
+        }
+
 	}
 }
