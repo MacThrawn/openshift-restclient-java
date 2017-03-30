@@ -19,74 +19,78 @@ import com.openshift.restclient.model.container.IContainerStatus;
  */
 public interface IPod extends IResource {
 
-	/**
-	 * Gets the IP of the Pod
-	 *
-	 * @return
-	 */
-	String getIP();
+    /**
+     * Gets the IP of the Pod
+     *
+     * @return
+     */
+    String getIP();
 
-	/**
-	 * Gets the name of the host on which
-	 * the pod is running
-	 *
-	 * @return
-	 */
-	String getHost();
+    /**
+     * Gets the name of the host on which the pod is running
+     *
+     * @return
+     */
+    String getHost();
 
-	/**
-	 * Gets the collection of image names
-	 * for the pod containers
-	 *
-	 * @return
-	 */
-	Collection<String> getImages();
+    /**
+     * Gets the collection of image names for the pod containers
+     *
+     * @return
+     */
+    Collection<String> getImages();
 
-	/**
-	 * Gets the status of the pod
-	 *
-	 * @return
-	 */
-	String getStatus();
+    /**
+     * Get the transient template values of the POD container origin images.
+     * 
+     * @return the container parameter 'originImage' for all containers in the POD
+     */
+    Collection<String> getOriginImages();
 
-	/**
-	 * @return a list of JSON strings containing the pod states
-	 */
-	List<String> getPodContainerStates();
+    /**
+     * Gets the status of the pod
+     *
+     * @return
+     */
+    String getStatus();
 
-	/**
-	 * Reads the Ready condition
-	 *
-	 * @return
-	 */
-	boolean isReady();
+    /**
+     * @return a list of JSON strings containing the pod states
+     */
+    List<String> getPodContainerStates();
 
-	/**
-	 * Reads the POD status conditions
-	 *
-	 * @return
-	 */
-	Collection<IPodCondition> getPodCondtions();
+    /**
+     * Reads the Ready condition
+     *
+     * @return
+     */
+    boolean isReady();
 
-	/**
-	 * Find the Ready condition
-	 *
-	 * @return the ready condition or null
-	 */
-	IPodCondition getPodConditionReady();
+    /**
+     * Reads the POD status conditions
+     *
+     * @return
+     */
+    Collection<IPodCondition> getPodCondtions();
 
-	/**
-	 * Retrieve the set of ports that the
-	 * containers are using
-	 */
-	Set<IPort> getContainerPorts();
+    /**
+     * Find the Ready condition
+     *
+     * @return the ready condition or null
+     */
+    IPodCondition getPodConditionReady();
 
-	/**
-	 * Read the container statuses
-	 * 
-	 * @return
-	 */
-	Collection<IContainerStatus> getContainerStatuses();
+    /**
+     * Retrieve the set of ports that the containers are using
+     */
+    Set<IPort> getContainerPorts();
 
-	String getLabel(String key);
+    /**
+     * Read the container statuses
+     * 
+     * @return
+     */
+    Collection<IContainerStatus> getContainerStatuses();
+
+    String getLabel(String key);
 }

@@ -45,6 +45,8 @@ public class Pod extends KubernetesResource implements IPod {
     private static final String POD_CONDITIONS = "status.conditions";
     private static final String POD_CONTAINER_STATUSES = "status.containerStatuses";
     private static final String POD_LABELS = "metadata.labels";
+    private static final String POD_TEMPLATE_CONTAINERS = "spec.containers";
+    private static final String ORIGIN_IMAGE = "originImage";
 
     public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
         super(node, client, propertyKeys);
@@ -72,6 +74,19 @@ public class Pod extends KubernetesResource implements IPod {
             images.add(entry.get("image").asString());
         }
         return images;
+    }
+
+    @Override
+    public Collection<String> getOriginImages() {
+        ModelNode node = get(POD_TEMPLATE_CONTAINERS);
+        if (node.getType() != ModelType.LIST) {
+            return new ArrayList<String>();
+        }
+        Collection<String> list = new ArrayList<String>();
+        for (ModelNode entry : node.asList()) {
+            list.add(entry.get(ORIGIN_IMAGE).asString());
+        }
+        return list;
     }
 
     @Override
