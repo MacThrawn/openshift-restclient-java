@@ -45,8 +45,9 @@ public class Pod extends KubernetesResource implements IPod {
     private static final String POD_CONDITIONS = "status.conditions";
     private static final String POD_CONTAINER_STATUSES = "status.containerStatuses";
     private static final String POD_LABELS = "metadata.labels";
-    private static final String POD_TEMPLATE_CONTAINERS = "spec.containers";
+    public static final String POD_TEMPLATE_CONTAINERS = "spec.containers";
     private static final String ORIGIN_IMAGE = "originImage";
+    public static final String IMAGE = "image";
 
     public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
         super(node, client, propertyKeys);

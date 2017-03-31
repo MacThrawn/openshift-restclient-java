@@ -130,5 +130,10 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
             // NOP
         }
 
+        @Override
+        public void setFirstPodContainerImage(String image) {
+            // NOP
+        }
+
 	}
 }

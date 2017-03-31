@@ -72,4 +72,6 @@ public interface ITemplate extends IResource {
 
 	void setFirstJobContainerImage(final String image);
 
+	void setFirstPodContainerImage(final String image);
+
 }
