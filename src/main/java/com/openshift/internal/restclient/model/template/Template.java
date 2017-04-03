@@ -25,6 +25,7 @@ import com.openshift.internal.restclient.model.Pod;
 import com.openshift.restclient.IClient;
 import com.openshift.restclient.IResourceFactory;
 import com.openshift.restclient.OpenShiftException;
+import com.openshift.restclient.ResourceKind;
 import com.openshift.restclient.capability.CapabilityVisitor;
 import com.openshift.restclient.capability.resources.ITags;
 import com.openshift.restclient.model.IResource;
@@ -131,23 +132,23 @@ public class Template extends KubernetesResource implements ITemplate {
     }
 
     @Override
-    public void setFirstJobContainerImage(String image) {
-        ModelNode node = get(OBJECTS).asList().iterator().next();
-        ModelNode containerNode = get(node, Job.JOB_TEMPLATE_CONTAINERS);
-        if (containerNode.getType() != ModelType.LIST) {
-            throw new OpenShiftException("Failed to set Job Container image.");
+    public void setFirstContainerImage(String kind, String image) {
+        if (ResourceKind.POD.equals(kind)) {
+            ModelNode node = get(OBJECTS).asList().iterator().next();
+            ModelNode containerNode = get(node, Pod.POD_TEMPLATE_CONTAINERS);
+            if (containerNode.getType() != ModelType.LIST) {
+                throw new OpenShiftException("Failed to set Pod Container image.");
+            }
+            set(containerNode.asList().iterator().next(), Pod.IMAGE, image);
+        } else if (ResourceKind.JOB.equals(kind)) {
+            ModelNode node = get(OBJECTS).asList().iterator().next();
+            ModelNode containerNode = get(node, Job.JOB_TEMPLATE_CONTAINERS);
+            if (containerNode.getType() != ModelType.LIST) {
+                throw new OpenShiftException("Failed to set Job Container image.");
+            }
+            set(containerNode.asList().iterator().next(), Job.IMAGE, image);
         }
-        set(containerNode.asList().iterator().next(), Job.IMAGE, image);
-    }
-
-    @Override
-    public void setFirstPodContainerImage(String image) {
-        ModelNode node = get(OBJECTS).asList().iterator().next();
-        ModelNode containerNode = get(node, Pod.POD_TEMPLATE_CONTAINERS);
-        if (containerNode.getType() != ModelType.LIST) {
-            throw new OpenShiftException("Failed to set Pod Container image.");
-        }
-        set(containerNode.asList().iterator().next(), Pod.IMAGE, image);
+        // throw exception?
     }
 
 }

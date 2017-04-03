@@ -70,8 +70,13 @@ public interface ITemplate extends IResource {
 	 */
 	boolean isMatching(final String filterText);
 
-	void setFirstJobContainerImage(final String image);
+	/**
+	 * Supported Kind: Pod or Job.
+	 * 
+	 * @param kind the kind of objects image to set
+	 * @param image the image pull id
+	 */
+	void setFirstContainerImage(final String kind, final String image);
 
-	void setFirstPodContainerImage(final String image);
 
 }

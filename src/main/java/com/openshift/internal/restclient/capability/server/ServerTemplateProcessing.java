@@ -126,12 +126,7 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
         }
 
         @Override
-        public void setFirstJobContainerImage(String image) {
-            // NOP
-        }
-
-        @Override
-        public void setFirstPodContainerImage(String image) {
+        public void setFirstContainerImage(String kind, String image) {
             // NOP
         }
 
