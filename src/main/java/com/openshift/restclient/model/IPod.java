@@ -94,10 +94,4 @@ public interface IPod extends IResource {
 
     String getLabel(String key);
 
-    /**
-     * Retrieve the maximum failure runs allowed for any container.
-     * 
-     * @return the max reruns allowed
-     */
-    Integer getMaxRestartCount();
 }

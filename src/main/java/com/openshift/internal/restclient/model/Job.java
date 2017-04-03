@@ -16,7 +16,6 @@ public class Job extends KubernetesResource implements IJob {
     public static final String IMAGE = "image";
     private static final String ORIGIN_IMAGE = "originImage";
     private static final String STATUS = "status";
-    private static final String MAX_RESTART_COUNT = "spec.template.spec.maxRestartCount";
 
     public Job(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
         super(node, client, overrideProperties);
@@ -50,12 +49,6 @@ public class Job extends KubernetesResource implements IJob {
     @Override
     public String getStatus() {
         return get(STATUS).toJSONString(false);
-    }
-
-    @Override
-    public Integer getMaxRestartCount() {
-        ModelNode maxRestartCount = get(MAX_RESTART_COUNT);
-        return maxRestartCount.isDefined() ? Integer.valueOf(maxRestartCount.asInt()) : null;
     }
 
 }
