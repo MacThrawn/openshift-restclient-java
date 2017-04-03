@@ -20,23 +20,23 @@ import com.openshift.restclient.model.container.IContainerStatus;
 public interface IPod extends IResource {
 
     /**
-     * Gets the IP of the Pod
+     * Gets the IP of the Pod.
      *
-     * @return
+     * @return the IP of this pod
      */
     String getIP();
 
     /**
-     * Gets the name of the host on which the pod is running
+     * Gets the name of the host on which the pod is running.
      *
-     * @return
+     * @return the host dns
      */
     String getHost();
 
     /**
-     * Gets the collection of image names for the pod containers
+     * Gets the collection of image names for the pod containers.
      *
-     * @return
+     * @return the container image names within this pod
      */
     Collection<String> getImages();
 
@@ -48,9 +48,9 @@ public interface IPod extends IResource {
     Collection<String> getOriginImages();
 
     /**
-     * Gets the status of the pod
+     * Gets the status of the pod.
      *
-     * @return
+     * @return the openshift string status of the pod
      */
     String getStatus();
 
@@ -60,21 +60,21 @@ public interface IPod extends IResource {
     List<String> getPodContainerStates();
 
     /**
-     * Reads the Ready condition
+     * Reads the Ready condition.
      *
-     * @return
+     * @return true if the pod is ready
      */
     boolean isReady();
 
     /**
-     * Reads the POD status conditions
+     * Reads the POD status conditions.
      *
-     * @return
+     * @return the list of pod conditions or an empty list
      */
     Collection<IPodCondition> getPodCondtions();
 
     /**
-     * Find the Ready condition
+     * Find the Ready condition.
      *
      * @return the ready condition or null
      */
@@ -86,11 +86,18 @@ public interface IPod extends IResource {
     Set<IPort> getContainerPorts();
 
     /**
-     * Read the container statuses
+     * Read the container statuses.
      * 
-     * @return
+     * @return the list of container statuses for this pod
      */
     Collection<IContainerStatus> getContainerStatuses();
 
     String getLabel(String key);
+
+    /**
+     * Retrieve the maximum failure runs allowed for any container.
+     * 
+     * @return the max reruns allowed
+     */
+    Integer getMaxRestartCount();
 }

@@ -48,6 +48,7 @@ public class Pod extends KubernetesResource implements IPod {
     public static final String POD_TEMPLATE_CONTAINERS = "spec.containers";
     private static final String ORIGIN_IMAGE = "originImage";
     public static final String IMAGE = "image";
+    private static final String MAX_RESTART_COUNT = "spec.maxRestartCount";
 
     public Pod(ModelNode node, IClient client, Map<String, String[]> propertyKeys) {
         super(node, client, propertyKeys);
@@ -230,6 +231,12 @@ public class Pod extends KubernetesResource implements IPod {
             }
         }
         return states;
+    }
+
+    @Override
+    public Integer getMaxRestartCount() {
+        ModelNode maxRestartCount = get(MAX_RESTART_COUNT);
+        return maxRestartCount.isDefined() ? Integer.valueOf(maxRestartCount.asInt()) : null;
     }
 
 }
