@@ -39,7 +39,8 @@ public class Template extends KubernetesResource implements ITemplate {
 
     private static final String TEMPLATE_PARAMETERS = "parameters";
     private static final String TEMPLATE_OBJECT_LABELS = "labels";
-    private static final String CHILD_OBJECT_TEMPLATE_LABELS = "spec.template.metadata.labels";
+    private static final String JOB_CHILD_OBJECT_TEMPLATE_LABELS = "spec.template.metadata.labels";
+    private static final String POD_CHILD_OBJECT_TEMPLATE_LABELS = "metadata.labels";
 
     public Template(ModelNode node, IClient client, Map<String, String[]> overrideProperties) {
         super(node, client, overrideProperties);
@@ -126,8 +127,14 @@ public class Template extends KubernetesResource implements ITemplate {
     @Override
     public void addChildObjectLabels(String key, String value) {
         for (ModelNode node : get(OBJECTS).asList()) {
-            ModelNode labels = node.get(getPath(CHILD_OBJECT_TEMPLATE_LABELS));
-            labels.get(key).set(value);
+            String kind = node.get("kind").asString();
+            if (kind.equals(ResourceKind.JOB)) {
+                ModelNode labels = node.get(getPath(JOB_CHILD_OBJECT_TEMPLATE_LABELS));
+                labels.get(key).set(value);
+            } else if (kind.equals(ResourceKind.POD)) {
+                ModelNode labels = node.get(getPath(POD_CHILD_OBJECT_TEMPLATE_LABELS));
+                labels.get(key).set(value);
+            }
         }
     }
 
