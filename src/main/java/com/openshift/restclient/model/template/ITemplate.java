@@ -74,9 +74,10 @@ public interface ITemplate extends IResource {
 	 * Supported Kind: Pod or Job.
 	 * 
 	 * @param kind the kind of objects image to set
+	 * @param index the array location of the image to set
 	 * @param image the image pull id
 	 */
-	void setFirstContainerImage(final String kind, final String image);
+	void setContainerImage(final String kind, final int index, final String image);
 
 
 }

@@ -139,21 +139,21 @@ public class Template extends KubernetesResource implements ITemplate {
     }
 
     @Override
-    public void setFirstContainerImage(String kind, String image) {
+    public void setContainerImage(String kind, int index, String image) {
         if (ResourceKind.POD.equals(kind)) {
             ModelNode node = get(OBJECTS).asList().iterator().next();
             ModelNode containerNode = get(node, Pod.POD_TEMPLATE_CONTAINERS);
             if (containerNode.getType() != ModelType.LIST) {
                 throw new OpenShiftException("Failed to set Pod Container image.");
             }
-            set(containerNode.asList().iterator().next(), Pod.IMAGE, image);
+            set(containerNode.asList().get(index), Pod.IMAGE, image);
         } else if (ResourceKind.JOB.equals(kind)) {
             ModelNode node = get(OBJECTS).asList().iterator().next();
             ModelNode containerNode = get(node, Job.JOB_TEMPLATE_CONTAINERS);
             if (containerNode.getType() != ModelType.LIST) {
                 throw new OpenShiftException("Failed to set Job Container image.");
             }
-            set(containerNode.asList().iterator().next(), Job.IMAGE, image);
+            set(containerNode.asList().get(index), Job.IMAGE, image);
         }
         // throw exception?
     }

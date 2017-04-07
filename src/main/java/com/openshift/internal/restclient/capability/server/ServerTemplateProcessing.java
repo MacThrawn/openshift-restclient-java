@@ -126,7 +126,7 @@ public class ServerTemplateProcessing implements ITemplateProcessing {
         }
 
         @Override
-        public void setFirstContainerImage(String kind, String image) {
+        public void setContainerImage(String kind, int index, String image) {
             // NOP
         }
 
